@@ -35,7 +35,7 @@ namespace BTCPayServer.HostedServices
             {
                 CreateLoopTask(RefreshCoinAverageSupportedExchanges),
                 CreateLoopTask(RefreshCoinAverageSettings),
-                CreateLoopTask(RefreshRates)
+                //CreateLoopTask(RefreshRates)
             };
         }
         async Task RefreshRates()

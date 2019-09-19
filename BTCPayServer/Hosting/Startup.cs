@@ -45,6 +45,7 @@ namespace BTCPayServer.Hosting
         {
             Logs.Configure(LoggerFactory);
             services.ConfigureBTCPayServer(Configuration);
+            services.AddEthereumLike();
             services.AddMemoryCache();
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
