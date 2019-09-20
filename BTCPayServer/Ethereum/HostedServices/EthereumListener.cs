@@ -8,7 +8,6 @@ using BTCPayServer.Ethereum.Client;
 using BTCPayServer.Ethereum.Events;
 using BTCPayServer.Ethereum.Services;
 using BTCPayServer.Ethereum.Services.Wallet;
-using BTCPayServer.Events;
 using BTCPayServer.HostedServices;
 using BTCPayServer.Logging;
 using BTCPayServer.Payments;
@@ -84,13 +83,13 @@ namespace BTCPayServer.Ethereum.HostedServices
 
             leases.Add(_Aggregator.Subscribe<EthNewTransactionEvent>(async evt =>
             {
-               // Logs.PayServer.LogInformation($"Publish subscribe EthNewTransactionEvent ,TransactionHash : {evt.Transaction.TransactionHash}");
+                Logs.PayServer.LogInformation($"Publish subscribe EthNewTransactionEvent ,TransactionHash : {evt.Transaction.TransactionHash}");
                 await NewTransactionEvent(evt.EthereumWallet);
             }));
 
             leases.Add(_Aggregator.Subscribe<EthNewBlock>(async evt =>
             {
-               // Logs.PayServer.LogInformation($"Publish subscribe EthNewBlock, BlockNumber : {evt.BlockNumber}");
+                Logs.PayServer.LogInformation($"Publish subscribe EthNewBlock, BlockNumber : {evt.BlockNumber}");
                 await Task.WhenAll((await _InvoiceRepository.GetPendingInvoices())
                                      .Select(invoiceId => UpdatePaymentStates(evt.EthereumWallet, invoiceId))
                                      .ToArray());
@@ -114,6 +113,7 @@ namespace BTCPayServer.Ethereum.HostedServices
 
         private async Task Listen(EthereumWallet wallet)
         {
+            //return;
             EthereumLikecBtcPayNetwork network = wallet.Network;
             bool cleanup = false;
             try
@@ -137,27 +137,50 @@ namespace BTCPayServer.Ethereum.HostedServices
                 {
                     return;
                 }
-                cleanup = true;
 
                 Logs.PayServer.LogInformation($"{network.CryptoCode}: Checking if any pending invoice got paid while offline...");
                 int paymentCount = await FindPaymentViaPolling(wallet, network);
                 Logs.PayServer.LogInformation($"{network.CryptoCode}: {paymentCount} payments happened while offline");
 
+                /*
+                 * high CPU usage.
+                 * cleanup = true;
                 while (!_Cts.IsCancellationRequested)
                 {
                     //Logs.PayServer.LogInformation($"Calling NewBlockAndTransactionService.GetLatestBlocksAsync");
-
-                    await NewBlockAndTransactionService.GetLatestBlocksAsync(_Aggregator, client, wallet);
+                     await NewBlockAndTransactionService.GetLatestBlocksAsync(_Aggregator, client, wallet);
                 }
+                */
+                bool isRunning = false;
+                var newBlockAndTransactionService = new Timer(async s =>
+                {
+                    if (!isRunning)
+                    {
+                        isRunning = true;
+                        Logs.PayServer.LogInformation($"Eth, isRunning {isRunning}");
+                        await NewBlockAndTransactionService.GetLatestBlocksAsync(_Aggregator, client, wallet);
+                        isRunning = false;
+                        Logs.PayServer.LogInformation($"Eth, isRunning {isRunning}");
+                    }
+                    else
+                    {
+                        Logs.PayServer.LogInformation($"Eth is already running, isRunning {isRunning}");
+                    }
+                }, null, 0, (int)TimeSpan.FromSeconds(30.0).TotalMilliseconds);
+                leases.Add(newBlockAndTransactionService);
             }
-            catch when (_Cts.IsCancellationRequested) { }
+            catch when (_Cts.IsCancellationRequested)
+            {
+                cleanup = true;//If we use timer
+            }
             catch (Exception ex)
             {
+                cleanup = true;//If we use timer
                 Logs.PayServer.LogError(ex, $"Error while connecting to NewBlockAndTransactionService of Eth ({network.CryptoCode})");
             }
             finally
             {
-                if (cleanup)
+                if (cleanup)//TODO.It does not call on app shutdown
                 {
                     Logs.PayServer.LogInformation($"Disconnected from NewBlockAndTransactionService of Eth ({network.CryptoCode})");
                     _SessionsByCryptoCode.TryRemove(network.CryptoCode, out string unused);
@@ -213,67 +236,67 @@ namespace BTCPayServer.Ethereum.HostedServices
         {
             //TODO.Change impl
             InvoiceEntity invoice = await _InvoiceRepository.GetInvoice(invoiceId, false);
-           /* if (invoice == null)
-            {
-                return null;
-            }
+            /* if (invoice == null)
+             {
+                 return null;
+             }
 
-            List<PaymentEntity> updatedPaymentEntities = new List<PaymentEntity>();
-            Dictionary<uint256, TransactionResult> transactions = await wallet.GetTransactions(GetAllBitcoinPaymentData(invoice)
-                    .Select(p => p.Outpoint.Hash)
-                    .ToArray());
-            TransactionConflicts conflicts = GetConflicts(transactions.Select(t => t.Value));
-            foreach (PaymentEntity payment in invoice.GetPayments(wallet.Network))
-            {
-                if (payment.GetPaymentMethodId().PaymentType != PaymentTypes.BTCLike)
-                {
-                    continue;
-                }
+             List<PaymentEntity> updatedPaymentEntities = new List<PaymentEntity>();
+             Dictionary<uint256, TransactionResult> transactions = await wallet.GetTransactions(GetAllBitcoinPaymentData(invoice)
+                     .Select(p => p.Outpoint.Hash)
+                     .ToArray());
+             TransactionConflicts conflicts = GetConflicts(transactions.Select(t => t.Value));
+             foreach (PaymentEntity payment in invoice.GetPayments(wallet.Network))
+             {
+                 if (payment.GetPaymentMethodId().PaymentType != PaymentTypes.BTCLike)
+                 {
+                     continue;
+                 }
 
-                var paymentData = (BitcoinLikePaymentData)payment.GetCryptoPaymentData();
-                if (!transactions.TryGetValue(paymentData.Outpoint.Hash, out TransactionResult tx))
-                {
-                    continue;
-                }
+                 var paymentData = (BitcoinLikePaymentData)payment.GetCryptoPaymentData();
+                 if (!transactions.TryGetValue(paymentData.Outpoint.Hash, out TransactionResult tx))
+                 {
+                     continue;
+                 }
 
-                uint256 txId = tx.Transaction.GetHash();
-                TransactionConflict txConflict = conflicts.GetConflict(txId);
-                var accounted = txConflict == null || txConflict.IsWinner(txId);
+                 uint256 txId = tx.Transaction.GetHash();
+                 TransactionConflict txConflict = conflicts.GetConflict(txId);
+                 var accounted = txConflict == null || txConflict.IsWinner(txId);
 
-                bool updated = false;
-                if (accounted != payment.Accounted)
-                {
-                    updated = true;
-                    payment.Accounted = accounted;
-                }
+                 bool updated = false;
+                 if (accounted != payment.Accounted)
+                 {
+                     updated = true;
+                     payment.Accounted = accounted;
+                 }
 
-                if (paymentData.ConfirmationCount != tx.Confirmations)
-                {
-                    if (wallet.Network.MaxTrackedConfirmation >= paymentData.ConfirmationCount)
-                    {
-                        paymentData.ConfirmationCount = tx.Confirmations;
-                        payment.SetCryptoPaymentData(paymentData);
-                        updated = true;
-                    }
-                }
+                 if (paymentData.ConfirmationCount != tx.Confirmations)
+                 {
+                     if (wallet.Network.MaxTrackedConfirmation >= paymentData.ConfirmationCount)
+                     {
+                         paymentData.ConfirmationCount = tx.Confirmations;
+                         payment.SetCryptoPaymentData(paymentData);
+                         updated = true;
+                     }
+                 }
 
-                // if needed add invoice back to pending to track number of confirmations
-                if (paymentData.ConfirmationCount < wallet.Network.MaxTrackedConfirmation)
-                {
-                    await _InvoiceRepository.AddPendingInvoiceIfNotPresent(invoice.Id);
-                }
+                 // if needed add invoice back to pending to track number of confirmations
+                 if (paymentData.ConfirmationCount < wallet.Network.MaxTrackedConfirmation)
+                 {
+                     await _InvoiceRepository.AddPendingInvoiceIfNotPresent(invoice.Id);
+                 }
 
-                if (updated)
-                {
-                    updatedPaymentEntities.Add(payment);
-                }
-            }
-            await _InvoiceRepository.UpdatePayments(updatedPaymentEntities);
-            if (updatedPaymentEntities.Count != 0)
-            {
-                _Aggregator.Publish(new InvoiceNeedUpdateEvent(invoice.Id));
-            }
-            */
+                 if (updated)
+                 {
+                     updatedPaymentEntities.Add(payment);
+                 }
+             }
+             await _InvoiceRepository.UpdatePayments(updatedPaymentEntities);
+             if (updatedPaymentEntities.Count != 0)
+             {
+                 _Aggregator.Publish(new InvoiceNeedUpdateEvent(invoice.Id));
+             }
+             */
             return invoice;
         }
 

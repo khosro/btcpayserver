@@ -1,2 +1,2 @@
-# dotnet build  .\BTCPayServer\BTCPayServer.csproj
+dotnet build  .\BTCPayServer\BTCPayServer.csproj
 dotnet .\BTCPayServer\bin\Debug\netcoreapp2.1\BTCPayServer.dll --conf="D:\VS_New\Trading Engine\z.Sample_Trading Engine\btcpayserver\btcpay\btcpay.config"  --network=regtest  --chains "btc,eth" --btcexplorerurl http://127.0.0.1:24444 --btcexplorercookiefile "D:\VS_New\Trading Engine\z.Sample_Trading Engine\btcpayserver\NBXplorer\data\RegTest\.cookie"

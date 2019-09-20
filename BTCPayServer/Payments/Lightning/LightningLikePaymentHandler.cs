@@ -139,8 +139,8 @@ namespace BTCPayServer.Payments.Lightning
 
         public override IEnumerable<PaymentMethodId> GetSupportedPaymentMethods()
         {
-            return _networkProvider.GetAll()
-                .Select(network => new PaymentMethodId(network.CryptoCode, PaymentTypes.LightningLike));
+            return _networkProvider.GetAll().OfType<BTCPayNetwork>()/*Some Network such as Ethereum is BTCPayNetworkBase and we want to exclude them here*/
+                            .Select(network => new PaymentMethodId(network.CryptoCode, PaymentTypes.LightningLike));
         }
         
         

@@ -33,19 +33,27 @@ namespace BTCPayServer.Ethereum.Services
                 {
                     lastBlockNumber = blockNumber.Value;
                 }
-                //Logs.PayServer.LogInformation($"Eth LastBlockNumber {lastBlockNumber} and CurrentBlockNumber {blockNumber.Value} ");
+
+                if (lastBlockNumber > blockNumber.Value)//It seems , server is running and then we delete geth data then,it occured
+                {
+                    Logs.PayServer.LogInformation($"Eth, it seems ethereum data dir has been deleted, {lastBlockNumber} and CurrentBlockNumber {blockNumber.Value} ");
+
+                    lastBlockNumber = blockNumber.Value;
+                }
+
+                Logs.PayServer.LogInformation($"Eth LastBlockNumber {lastBlockNumber} and CurrentBlockNumber {blockNumber.Value} ");
 
                 if (lastBlockNumber < blockNumber.Value)
                 {
                     while (lastBlockNumber <= blockNumber.Value)
                     {
-                        //Logs.PayServer.LogInformation($"Eth Iterate from LastBlockNumber {lastBlockNumber}");
+                        Logs.PayServer.LogInformation($"Eth Iterate from LastBlockNumber {lastBlockNumber}");
 
                         _Aggregator.Publish(new EthNewBlock(blockNumber.Value, ethereumWallet));
                         BlockWithTransactions blockWithTransactions = await client.GetBlockWithTransactionsByNumber(lastBlockNumber);
                         foreach (Transaction transaction in blockWithTransactions.Transactions)
                         {
-                           // Logs.PayServer.LogInformation($"Eth new TransactionHash {transaction.TransactionHash}");
+                            Logs.PayServer.LogInformation($"Eth new TransactionHash {transaction.TransactionHash}");
 
                             _Aggregator.Publish(new EthNewTransactionEvent(ethereumWallet, transaction));
                         }
