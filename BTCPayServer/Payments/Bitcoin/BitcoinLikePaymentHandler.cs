@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BTCPayServer.Data;
@@ -87,7 +86,7 @@ namespace BTCPayServer.Payments.Bitcoin
 
         public override IEnumerable<PaymentMethodId> GetSupportedPaymentMethods()
         {
-            return _networkProvider.GetAll()
+            return _networkProvider.GetAll().OfType<BTCPayNetwork>()/*Some Network such as Ethereum is BTCPayNetworkBase and we want to exclude them here*/
                 .Select(network => new PaymentMethodId(network.CryptoCode, PaymentTypes.BTCLike));
         }
 

@@ -1,9 +1,24 @@
-﻿<div class="nav flex-column nav-pills">
-    <a id="@(nameof(StoreNavPages.Index))"class="nav-link @ViewData.IsActivePage(StoreNavPages.Index)" asp-action="UpdateStore">General settings</a>
-    <a id="@(nameof(StoreNavPages.Rates))"class="nav-link @ViewData.IsActivePage(StoreNavPages.Rates)" asp-action="Rates">Rates</a>
-    <a id="@(nameof(StoreNavPages.Checkout))"class="nav-link @ViewData.IsActivePage(StoreNavPages.Checkout)" asp-action="CheckoutExperience">Checkout experience</a>
-    <a id="@(nameof(StoreNavPages.Tokens))"class="nav-link @ViewData.IsActivePage(StoreNavPages.Tokens)" asp-action="ListTokens">Access Tokens</a>
-    <a id="@(nameof(StoreNavPages.Users))"class="nav-link @ViewData.IsActivePage(StoreNavPages.Users)" asp-action="StoreUsers">Users</a>
-    <a id="@(nameof(StoreNavPages.PayButton))"class="nav-link @ViewData.IsActivePage(StoreNavPages.PayButton)" asp-action="PayButton">Pay Button</a>
+﻿@using BTCPayServer.Controllers
+@inject SignInManager<ApplicationUser> SignInManager;
+@inject BTCPayServer.Ethereum.Config.EthereumOptions EthereumOptions;
+
+@{
+    var controller = ViewContext.RouteData.Values["Controller"].ToString();
+    var isEth = controller.Equals(nameof(EthereumStoreController), StringComparison.InvariantCultureIgnoreCase);
+}
+
+<div class="nav flex-column nav-pills">
+    <a id="@(nameof(StoreNavPages.Index))" class="nav-link @ViewData.IsActivePage(StoreNavPages.Index)" asp-action="UpdateStore">General settings</a>
+    <a id="@(nameof(StoreNavPages.Rates))" class="nav-link @ViewData.IsActivePage(StoreNavPages.Rates)" asp-action="Rates">Rates</a>
+    <a id="@(nameof(StoreNavPages.Checkout))" class="nav-link @ViewData.IsActivePage(StoreNavPages.Checkout)" asp-action="CheckoutExperience">Checkout experience</a>
+    <a id="@(nameof(StoreNavPages.Tokens))" class="nav-link @ViewData.IsActivePage(StoreNavPages.Tokens)" asp-action="ListTokens">Access Tokens</a>
+    <a id="@(nameof(StoreNavPages.Users))" class="nav-link @ViewData.IsActivePage(StoreNavPages.Users)" asp-action="StoreUsers">Users</a>
+    <a id="@(nameof(StoreNavPages.PayButton))" class="nav-link @ViewData.IsActivePage(StoreNavPages.PayButton)" asp-action="PayButton">Pay Button</a>
+
+    @if (SignInManager.IsSignedIn(User) && User.IsInRole(Roles.ServerAdmin) && EthereumOptions.EthereumConfigs.Any())
+    {
+        <a class="nav-link @(isEth ? "active" : string.Empty)" asp-action="GetEthPaymentMethods" asp-controller="EthereumStore">Ethereum</a>
+    }
+
 </div>
 

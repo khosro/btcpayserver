@@ -23,12 +23,6 @@ namespace BTCPayServer
             services.TryAddSingleton<EthereumDashboard>();
             services.AddSingleton<IHostedService, EthereumWaiters>();
 
-            /* services.addsingleton<ethereumrpcprovider>();
-             services.addhostedservice<ethereumlikesummaryupdaterhostedservice>();
-             services.addhostedservice<ethereumlistener>();
-             services.addsingleton<ethereumlikepaymentmethodhandler>();
-             services.addsingleton<ipaymentmethodhandler>(provider => provider.getservice<ethereumlikepaymentmethodhandler>());
-             */
             return services;
         }
 
