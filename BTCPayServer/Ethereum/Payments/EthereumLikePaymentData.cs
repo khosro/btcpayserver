@@ -7,8 +7,6 @@ namespace BTCPayServer.Ethereum.Payments
     {
         public long Amount { get; set; }
         public string Address { get; set; }
-        public long SubaddressIndex { get; set; }
-        public long SubaccountIndex { get; set; }
         public long BlockHeight { get; set; }
         public long ConfirmationCount { get; set; }
         public string TransactionId { get; set; }
@@ -17,7 +15,7 @@ namespace BTCPayServer.Ethereum.Payments
 
         public string GetPaymentId()
         {
-            return $"{TransactionId}#{SubaccountIndex}#{SubaddressIndex}";
+            return $"{TransactionId}";
         }
 
         public string[] GetSearchTerms()

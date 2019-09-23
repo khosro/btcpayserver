@@ -19,7 +19,7 @@ namespace BTCPayServer.Ethereum.Payments
             return "";
         }
 
-        public override string GetId() => "Eth";
+        public override string GetId() => "ethlike";
 
 
         public override CryptoPaymentData DeserializePaymentData(string str)

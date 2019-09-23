@@ -1,0 +1,59 @@
+﻿@using BTCPayServer.Controllers
+@using BTCPayServer.Views.Stores
+@model BTCPayServer.Ethereum.ViewModels.EthPaymentMethodViewModel
+
+@{
+    Layout = "../Shared/_NavLayout.cshtml";
+
+    ViewData["NavPartialName"] = "../Stores/_Nav";
+    ViewData.SetActivePageAndTitle(StoreNavPages.ActivePage, $"{Model.CryptoCode} Settings");
+}
+
+
+
+<div class="row">
+    <div class="col-md-6">
+        <div asp-validation-summary="All" class="text-danger"></div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-8">
+
+        <form method="post" asp-action="GetEthPaymentMethod" class="mt-4">
+
+            <input type="hidden" asp-for="CryptoCode" />
+
+            <div class="form-group">
+                <label asp-for="Mnemonic" class="control-label"></label>
+
+                <textarea id="phrase" asp-for="Mnemonic" class="phrase private-data form-control" data-show-qr=""
+                          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+                <button class="btn btn-secondary" id="generateMnemonic"><b>Genereate Mnemonic</b></button>
+
+                <span asp-validation-for="Mnemonic" class="text-danger"></span>
+
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Enabled"></label>
+                <input asp-for="Enabled" type="checkbox" class="form-check" />
+                <span asp-validation-for="Enabled" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary" id="SaveButton">Save</button>
+
+                <a class="btn btn-secondary" asp-action="GetEthPaymentMethods" asp-controller="EthereumStore">Back to list</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script src="~/js/jsbip39.js"></script>
+    <script src="~/js/sjcl-bip39.js"></script>
+    <script src="~/js/levenshtein.js"></script>
+    <script src="~/js/wordlist_english.js"></script>
+    <script src="~/js/mnemonic.js"></script>
+}

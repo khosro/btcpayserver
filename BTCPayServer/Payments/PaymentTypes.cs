@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BTCPayServer.Ethereum.Payments;
 using BTCPayServer.Services.Invoices;
 using Newtonsoft.Json.Linq;
 
@@ -21,6 +22,8 @@ namespace BTCPayServer.Payments
         /// </summary>
         public static LightningPaymentType LightningLike => LightningPaymentType.Instance;
 
+        public static EthereumPaymentType EthLike => EthereumPaymentType.Instance;
+
         public static bool TryParse(string paymentType, out PaymentType type)
         {
             switch (paymentType.ToLowerInvariant())
@@ -32,6 +35,9 @@ namespace BTCPayServer.Payments
                 case "lightninglike":
                 case "offchain":
                     type = PaymentTypes.LightningLike;
+                    break;
+                case "ethlike":
+                    type = EthLike;
                     break;
                 default:
                     type = null;

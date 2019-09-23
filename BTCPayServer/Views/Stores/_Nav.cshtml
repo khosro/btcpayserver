@@ -1,11 +1,10 @@
 ﻿@using BTCPayServer.Controllers
 @inject SignInManager<ApplicationUser> SignInManager;
 @inject BTCPayServer.Ethereum.Config.EthereumOptions EthereumOptions;
-
-@{
-    var controller = ViewContext.RouteData.Values["Controller"].ToString();
-    var isEth = controller.Equals(nameof(EthereumStoreController), StringComparison.InvariantCultureIgnoreCase);
-}
+@*@{
+        var controller = ViewContext.RouteData.Values["Controller"].ToString();
+        var isEth = controller.Equals(nameof(EthereumStoreController), StringComparison.InvariantCultureIgnoreCase);
+    }*@
 
 <div class="nav flex-column nav-pills">
     <a id="@(nameof(StoreNavPages.Index))" class="nav-link @ViewData.IsActivePage(StoreNavPages.Index)" asp-action="UpdateStore">General settings</a>
@@ -15,10 +14,10 @@
     <a id="@(nameof(StoreNavPages.Users))" class="nav-link @ViewData.IsActivePage(StoreNavPages.Users)" asp-action="StoreUsers">Users</a>
     <a id="@(nameof(StoreNavPages.PayButton))" class="nav-link @ViewData.IsActivePage(StoreNavPages.PayButton)" asp-action="PayButton">Pay Button</a>
 
-    @if (SignInManager.IsSignedIn(User) && User.IsInRole(Roles.ServerAdmin) && EthereumOptions.EthereumConfigs.Any())
-    {
-        <a class="nav-link @(isEth ? "active" : string.Empty)" asp-action="GetEthPaymentMethods" asp-controller="EthereumStore">Ethereum</a>
-    }
-
+    @* @if (SignInManager.IsSignedIn(User) && User.IsInRole(Roles.ServerAdmin) && EthereumOptions.EthereumConfigs.Any())
+            {
+                <a  asp-action="GetEthPaymentMethods" asp-controller="Stores">Ethereum</a>
+        }
+    *@
 </div>
 

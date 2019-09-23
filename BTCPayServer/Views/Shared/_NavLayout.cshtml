@@ -1,6 +1,12 @@
 ﻿@{
-Layout = "/Views/Shared/_Layout.cshtml";
-ViewBag.ShowMenu = ViewBag.ShowMenu ?? true;
+    Layout = "/Views/Shared/_Layout.cshtml";
+    ViewBag.ShowMenu = ViewBag.ShowMenu ?? true;
+
+    if (!ViewData.ContainsKey("NavPartialName"))
+    {
+        ViewData["NavPartialName"] = "_Nav";
+    }
+    var title = $"{(ViewData.ContainsKey("MainTitle") ? $"{ViewData["MainTitle"]}:" : String.Empty)} {ViewData["Title"]}";
 }
 
 <section>
@@ -17,7 +23,7 @@ ViewBag.ShowMenu = ViewBag.ShowMenu ?? true;
                 <div class="col-md-3">
                     @if (ViewBag.ShowMenu)
                     {
-                    @await Html.PartialAsync("_Nav")
+                    @await Html.PartialAsync(ViewData["NavPartialName"].ToString())
                     }
                 </div>
                 <div class="col-md-9">

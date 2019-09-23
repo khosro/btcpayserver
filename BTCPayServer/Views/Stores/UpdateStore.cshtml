@@ -100,13 +100,13 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach(var scheme in Model.DerivationSchemes)
+                        @foreach (var scheme in Model.DerivationSchemes)
                         {
                             <tr>
                                 <td>@scheme.Crypto</td>
                                 <td class="smMaxWidth text-truncate">@scheme.Value</td>
                                 <td style="text-align:center;">
-                                    @if(scheme.Enabled)
+                                    @if (scheme.Enabled)
                                     {
                                         <span class="fa fa-check"></span>
                                     }
@@ -116,7 +116,7 @@
                                     }
                                 </td>
                                 <td style="text-align:right">
-                                    @if(!string.IsNullOrWhiteSpace(scheme.Value))
+                                    @if (!string.IsNullOrWhiteSpace(scheme.Value))
                                     {
                                         <a asp-action="WalletTransactions" asp-controller="Wallets" asp-route-walletId="@scheme.WalletId">Wallet</a><span> - </span>
                                     }
@@ -126,6 +126,9 @@
                         }
                     </tbody>
                 </table>
+            </div>
+            <div>
+                @await Component.InvokeAsync("EthereumPayment")
             </div>
 
             <div class="form-group">
@@ -147,13 +150,13 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach(var scheme in Model.LightningNodes)
+                            @foreach (var scheme in Model.LightningNodes)
                             {
                                 <tr>
                                     <td>@scheme.CryptoCode</td>
                                     <td class="smMaxWidth text-truncate">@scheme.Address</td>
                                     <td style="text-align:center;">
-                                        @if(scheme.Enabled)
+                                        @if (scheme.Enabled)
                                         {
                                             <span class="fa fa-check"></span>
                                         }
@@ -177,8 +180,8 @@
                     Available placeholders are: {StoreName}, {ItemDescription} and {OrderId}
                 </p>
             </div>
-            
-             <div class="form-group">
+
+            <div class="form-group">
                 <div class="form-group">
                     <h5>Additional Payment methods</h5>
                 </div>
@@ -192,51 +195,51 @@
                             </tr>
                         </thead>
                         <tbody>
-                        @foreach (var scheme in Model.ThirdPartyPaymentMethods)
-                        {
-                            <tr>
-                                <td>@scheme.Provider</td>
-                                <td  class="text-center">
-                                    @if (scheme.Enabled)
-                                    {
-                                        <span class="fa fa-check"></span>
-                                    }
-                                    else
-                                    {
-                                        <span class="fa fa-times"></span>
-                                    }
-                                </td>
-                                <td class="text-right"><a asp-action="@scheme.Action" id='Modify-@scheme.Provider'>Modify</a></td>
-                            </tr>
-                        }
+                            @foreach (var scheme in Model.ThirdPartyPaymentMethods)
+                            {
+                                <tr>
+                                    <td>@scheme.Provider</td>
+                                    <td class="text-center">
+                                        @if (scheme.Enabled)
+                                        {
+                                            <span class="fa fa-check"></span>
+                                        }
+                                        else
+                                        {
+                                            <span class="fa fa-times"></span>
+                                        }
+                                    </td>
+                                    <td class="text-right"><a asp-action="@scheme.Action" id='Modify-@scheme.Provider'>Modify</a></td>
+                                </tr>
+                            }
                         </tbody>
                     </table>
                 </div>
             </div>
-        <div class="form-group">
             <div class="form-group">
-                <h5>Services</h5>
+                <div class="form-group">
+                    <h5>Services</h5>
+                </div>
+                <div class="form-group">
+                    <table class="table table-sm table-responsive-md">
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th style="text-align:right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    Email
+                                </td>
+                                <td style="text-align:right"><a asp-action="Emails">Modify</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            <div class="form-group">
-                <table class="table table-sm table-responsive-md">
-                    <thead>
-                    <tr>
-                        <th>Service</th>
-                        <th style="text-align:right">Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <td>
-                            Email
-                        </td>
-                        <td style="text-align:right"><a asp-action="Emails" >Modify</a></td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-            @if(Model.CanDelete)
+            @if (Model.CanDelete)
             {
                 <div class="form-group">
                     <h5>Other actions...</h5>
