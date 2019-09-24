@@ -9,5 +9,6 @@ namespace BTCPayServer.Ethereum.ViewModels
         [Required]
         public string Mnemonic { get; set; }
         public bool Enabled { get; set; }
+        public WalletId WalletId { get; set; }
     }
 }

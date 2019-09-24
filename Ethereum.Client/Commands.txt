@@ -1,0 +1,1 @@
+﻿Add-Migration EthereumClientInitial -Context EthereumClientApplicationDbContext -OutputDir Data\Migrations

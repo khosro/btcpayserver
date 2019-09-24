@@ -1,18 +1,21 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
+using BTCPayServer.Ethereum.Payments;
 using BTCPayServer.HostedServices;
 using NBitcoin;
-using NBXplorer.DerivationStrategy;
-using NBXplorer.Models;
+using Nethereum.HdWallet;
 using Nethereum.Hex.HexTypes;
+using Nethereum.JsonRpc.WebSocketStreamingClient;
 using Nethereum.RPC.Eth.DTOs;
+using Nethereum.RPC.Reactive.Eth.Subscriptions;
 using Nethereum.Web3;
+using Nethereum.Web3.Accounts;
 using Newtonsoft.Json;
 using Transaction = Nethereum.RPC.Eth.DTOs.Transaction;
-
 namespace BTCPayServer.Ethereum.Client
 {
     public class EthereumClient
@@ -21,12 +24,19 @@ namespace BTCPayServer.Ethereum.Client
         private readonly Web3 _web3;
         private readonly EthereumLikecBtcPayNetwork _Network;
         private readonly BTCPayNetworkProvider _NetworkProvider;
-        public EthereumClient(Uri rpcUri, EthereumLikecBtcPayNetwork network, BTCPayNetworkProvider networkProvider)
+        private readonly EthereumClientTransactionRepository _ethereumClientTransactionRepository;
+        public EthNewPendingTransactionObservableSubscription PendingTransactionsSubscription { get; private set; }
+        StreamingWebSocketClient _streamingWebSocketClient;
+
+        public EthereumClient(Uri rpcUri, string websocketUrl, EthereumLikecBtcPayNetwork network, BTCPayNetworkProvider networkProvider, EthereumClientTransactionRepository ethereumClientTransactionRepository)
         {
             _Network = network;
             _rpcUri = rpcUri;
             _NetworkProvider = networkProvider;
             _web3 = new Web3(_rpcUri.AbsoluteUri);
+            this._ethereumClientTransactionRepository = ethereumClientTransactionRepository;
+            _streamingWebSocketClient = new StreamingWebSocketClient(websocketUrl);
+            PendingTransactionsSubscription = new EthNewPendingTransactionObservableSubscription(_streamingWebSocketClient);
         }
 
         public async Task<EthereumStatusResult> GetStatusAsync(CancellationToken cancellation = default)
@@ -68,22 +78,31 @@ namespace BTCPayServer.Ethereum.Client
             return await _web3.Eth.Blocks.GetBlockWithTransactionsByNumber.SendRequestAsync(new HexBigInteger(blockNumber)).ConfigureAwait(false);
         }
 
-        public Task TrackAsync(DerivationStrategyBase strategy, CancellationToken cancellation = default)
+        public async Task<Transaction> GetTransactionByNumber(string txid)
+        {
+            return await _web3.Eth.Transactions.GetTransactionByHash.SendRequestAsync(txid).ConfigureAwait(false);
+        }
+
+
+        public async Task<Transaction> GetTransactionAsync(string txId, CancellationToken cancellation = default)
         {
             return null;
         }
 
-        public async Task<TransactionResult> GetTransactionAsync(uint256 txId, CancellationToken cancellation = default)
+        public async Task<IEnumerable<Transaction>> GetTransactionsAsync(EthereumSupportedPaymentMethod paymentMethod, CancellationToken cancellation = default)
         {
-            return null;
+            Wallet wallet = new Wallet(paymentMethod.Mnemonic, null);
+            List<string> accounts = new List<string>();
+            for (int i = 0; i < 10; i++)
+            {
+                Account account = wallet.GetAccount(i);
+                accounts.Add(account.Address);
+            }
+
+            return await _ethereumClientTransactionRepository.FindTransactionByAddresses(accounts);
         }
 
-        public Task<GetTransactionsResponse> GetTransactionsAsync(DerivationStrategyBase strategy, CancellationToken cancellation = default)
-        {
-            return null;
-        }
-
-        public Task<BroadcastResult> BroadcastAsync(Transaction tx, CancellationToken cancellation = default)
+        public Task BroadcastAsync(Transaction tx, CancellationToken cancellation = default)
         {
             return null;
         }

@@ -31,11 +31,13 @@ namespace BTCPayServer.Ethereum.HostedServices
         private TaskCompletionSource<bool> _RunningTask;
         private CancellationTokenSource _Cts;
         private EthereumWalletProvider _Wallets;
+        private EthereumClientTransactionRepository _ethereumClientTransactionRepository;
         public EthereumListener(EthereumClientProvider EthereumClients,
                                 EthereumWalletProvider wallets,
                                 InvoiceRepository invoiceRepository,
                                 EventAggregator aggregator,
-                                IApplicationLifetime lifetime)
+                                IApplicationLifetime lifetime,
+                                 EthereumClientTransactionRepository ethereumClientTransactionRepository)
         {
             PollInterval = TimeSpan.FromMinutes(1.0);
             _Wallets = wallets;
@@ -43,6 +45,7 @@ namespace BTCPayServer.Ethereum.HostedServices
             _EthereumClients = EthereumClients;
             _Aggregator = aggregator;
             _Lifetime = lifetime;
+            _ethereumClientTransactionRepository = ethereumClientTransactionRepository;
         }
 
         private CompositeDisposable leases = new CompositeDisposable();
@@ -84,6 +87,7 @@ namespace BTCPayServer.Ethereum.HostedServices
             leases.Add(_Aggregator.Subscribe<EthNewTransactionEvent>(async evt =>
             {
                 Logs.PayServer.LogInformation($"Publish subscribe EthNewTransactionEvent ,TransactionHash : {evt.Transaction.TransactionHash}");
+                await _ethereumClientTransactionRepository.SaveOrUpdateTransaction(evt.Transaction);
                 await NewTransactionEvent(evt.EthereumWallet);
             }));
 
@@ -151,14 +155,16 @@ namespace BTCPayServer.Ethereum.HostedServices
                      await NewBlockAndTransactionService.GetLatestBlocksAsync(_Aggregator, client, wallet);
                 }
                 */
-                bool isRunning = false;
+                /*
+                 //If we use old code GetLatestBlocksAsyncOld then we must use timer.
+                 * bool isRunning = false;
                 var newBlockAndTransactionService = new Timer(async s =>
                 {
                     if (!isRunning)
                     {
                         isRunning = true;
                         Logs.PayServer.LogInformation($"Eth, isRunning {isRunning}");
-                        await NewBlockAndTransactionService.GetLatestBlocksAsync(_Aggregator, client, wallet);
+                        NewBlockAndTransactionService.GetLatestBlocksAsync(_Aggregator, client, wallet);
                         isRunning = false;
                         Logs.PayServer.LogInformation($"Eth, isRunning {isRunning}");
                     }
@@ -168,6 +174,9 @@ namespace BTCPayServer.Ethereum.HostedServices
                     }
                 }, null, 0, (int)TimeSpan.FromSeconds(30.0).TotalMilliseconds);
                 leases.Add(newBlockAndTransactionService);
+                */
+                NewBlockAndTransactionService.GetLatestBlocksAsync(_Aggregator, client, wallet);
+
             }
             catch when (_Cts.IsCancellationRequested)
             {

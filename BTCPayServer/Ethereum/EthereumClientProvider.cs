@@ -15,28 +15,30 @@ namespace BTCPayServer
         private BTCPayNetworkProvider _NetworkProviders;
         private EthereumOptions _EthereumOptions;
         private Dictionary<string, EthereumClient> _Clients = new Dictionary<string, EthereumClient>();
-
+        EthereumClientTransactionRepository _ethereumClientTransactionRepository;
         public BTCPayNetworkProvider NetworkProviders => _NetworkProviders;
 
         private EthereumDashboard _Dashboard;
-        public EthereumClientProvider(BTCPayNetworkProvider networkProviders, EthereumOptions ethereumOptions, EthereumDashboard dashboard)
+        public EthereumClientProvider(BTCPayNetworkProvider networkProviders, EthereumOptions ethereumOptions, EthereumDashboard dashboard,
+             EthereumClientTransactionRepository ethereumClientTransactionRepository)
         {
             _Dashboard = dashboard;
             _NetworkProviders = networkProviders;
             _EthereumOptions = ethereumOptions;
+            this._ethereumClientTransactionRepository = ethereumClientTransactionRepository;
             foreach (EthereumConfig setting in _EthereumOptions.EthereumConfigs)
             {
                 Logs.Configuration.LogInformation($"{setting.CryptoCode}:  Ethereum url is {(setting.RpcUri.AbsoluteUri ?? "not set")}");
                 if (setting.RpcUri != null)
                 {
-                    _Clients.TryAdd(setting.CryptoCode, CreateEthereumClient(_NetworkProviders.GetNetwork<EthereumLikecBtcPayNetwork>(setting.CryptoCode), setting.RpcUri));
+                    _Clients.TryAdd(setting.CryptoCode, CreateEthereumClient(_NetworkProviders.GetNetwork<EthereumLikecBtcPayNetwork>(setting.CryptoCode), setting));
                 }
             }
         }
 
-        private EthereumClient CreateEthereumClient(EthereumLikecBtcPayNetwork n, Uri uri)
+        private EthereumClient CreateEthereumClient(EthereumLikecBtcPayNetwork n, EthereumConfig setting)
         {
-            var client = new EthereumClient(uri, n, _NetworkProviders);
+            var client = new EthereumClient(setting.RpcUri, setting.WebsocketUrl, n, _NetworkProviders, _ethereumClientTransactionRepository);
             return client;
         }
 

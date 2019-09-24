@@ -45,6 +45,11 @@
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.1.9" />
     <PackageReference Include="NBitpayClient" Version="1.0.0.34" />	  
     <PackageReference Include="DBriize" Version="1.0.0.4" />	  
+    <PackageReference Include="Nethereum.HdWallet" Version="3.4.0" />	  
+    <PackageReference Include="Nethereum.JsonRpc.RpcClient" Version="3.4.0" />	  
+    <PackageReference Include="Nethereum.JsonRpc.WebSocketClient" Version="3.4.0" />	  
+    <PackageReference Include="Nethereum.RPC" Version="3.4.0" />	  
+    <PackageReference Include="Nethereum.RPC.Reactive" Version="3.4.0" />	  
     <PackageReference Include="Nethereum.Web3" Version="3.4.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
     <PackageReference Include="NicolasDorier.CommandLine" Version="1.0.0.2" />
@@ -136,6 +141,7 @@
 	  <ProjectReference Include="..\BTCPayServer.Data\BTCPayServer.Data.csproj" />
 	  <ProjectReference Include="..\BTCPayServer.Rating\BTCPayServer.Rating.csproj" />
 	  <ProjectReference Include="..\BTCPayServer.Common\BTCPayServer.Common.csproj" />
+	  <ProjectReference Include="..\Ethereum.Client\Ethereum.Client.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

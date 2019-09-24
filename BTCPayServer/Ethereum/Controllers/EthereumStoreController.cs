@@ -16,46 +16,6 @@ namespace BTCPayServer.Controllers
     [Authorize(Policy = Policies.CanModifyServerSettings.Key, AuthenticationSchemes = Policies.CookieAuthentication)]
     public partial class StoresController : Controller
     {
-        //   private readonly EthereumOptions _ethereumOptions;
-        // private readonly StoreRepository _StoreRepository;
-        //private readonly BTCPayNetworkProvider _BtcPayNetworkProvider;
-
-        //public StoresController(EthereumOptions ethereumOptions, StoreRepository storeRepository, BTCPayNetworkProvider btcPayNetworkProvider)
-        //{
-        //    _ethereumOptions = ethereumOptions;
-        //    _StoreRepository = storeRepository;
-        //    _BtcPayNetworkProvider = btcPayNetworkProvider;
-        //}
-
-        //Moved to EthereumPaymentViewComponent
-        //[HttpGet()]
-        //public IActionResult GetEthPaymentMethods(string statusMessage)
-        //{
-        //    var ethereumSupportedPaymentMethods = StoreData.GetSupportedPaymentMethods(_BtcPayNetworkProvider).OfType<EthereumSupportedPaymentMethod>();
-
-        //    var excludeFilters = StoreData.GetStoreBlob().GetExcludedPaymentMethods();
-
-        //    var ethCryptoCodes = _ethereumOptions.EthereumConfigs.Select(t => t.CryptoCode);
-
-        //    return View(new EthStoreViewModel()
-        //    {
-        //        EthPaymentMethodViewModels = ethCryptoCodes.Select(cryptoCode =>
-        //        FillEthPaymentMethodViewModel(ethereumSupportedPaymentMethods.SingleOrDefault(t => t.CryptoCode.Equals(cryptoCode)), cryptoCode, excludeFilters))
-        //    });
-        //}
-
-        //EthPaymentMethodViewModel FillEthPaymentMethodViewModel(EthereumSupportedPaymentMethod ethereumSupportedPaymentMethod, string cryptoCode, IPaymentFilter excludeFilters)
-        //{
-        //    return new EthPaymentMethodViewModel()
-        //    {
-        //        CryptoCode = cryptoCode,
-        //        Enabled = ethereumSupportedPaymentMethod != null ? !excludeFilters.Match(ethereumSupportedPaymentMethod.PaymentId) : false,
-        //        Mnemonic = ethereumSupportedPaymentMethod != null ? ethereumSupportedPaymentMethod.Mnemonic : ""
-
-        //    };
-        //}
-
-
         [Route("{storeId}/ethstore/{cryptoCode}")]
         public IActionResult GetEthPaymentMethod(string cryptoCode, string statusMessage = null)
         {

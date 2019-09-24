@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 using BTCPayServer.Ethereum.Client;
@@ -8,7 +9,6 @@ using BTCPayServer.Logging;
 using Microsoft.Extensions.Logging;
 using Nethereum.Hex.HexTypes;
 using Nethereum.RPC.Eth.DTOs;
-
 namespace BTCPayServer.Ethereum.Services
 {
     public class NewBlockAndTransactionService
@@ -21,7 +21,8 @@ namespace BTCPayServer.Ethereum.Services
         private static readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
         private static BigInteger lastBlockNumber;
 
-        public static async Task GetLatestBlocksAsync(EventAggregator _Aggregator, EthereumClient client, EthereumWallet ethereumWallet)
+
+        static async Task GetLatestBlocksAsyncOld(EventAggregator _Aggregator, EthereumClient client, EthereumWallet ethereumWallet)
         {
             try
             {
@@ -67,6 +68,19 @@ namespace BTCPayServer.Ethereum.Services
             {
                 _semaphoreSlim.Release();
             }
+
+        }
+
+
+        public static void GetLatestBlocksAsync(EventAggregator _Aggregator, EthereumClient client, EthereumWallet ethereumWallet)
+        {
+            client.PendingTransactionsSubscription.GetSubscribeResponseAsObservable().Subscribe(subscriptionId =>
+              Console.WriteLine("subscriptionId : " + subscriptionId)
+            );
+
+            client.PendingTransactionsSubscription.GetSubscriptionDataResponsesAsObservable().Subscribe(async transactionHash =>
+                 _Aggregator.Publish(new EthNewTransactionEvent(ethereumWallet, await client.GetTransactionByNumber(transactionHash).ConfigureAwait(false)))
+              );
         }
     }
 }

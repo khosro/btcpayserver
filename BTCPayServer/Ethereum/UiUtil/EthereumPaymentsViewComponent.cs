@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.Threading.Tasks;
 using BTCPayServer.Data;
 using BTCPayServer.Ethereum.Config;
 using BTCPayServer.Ethereum.Payments;
@@ -9,15 +8,14 @@ using BTCPayServer.Services.Stores;
 using Microsoft.AspNetCore.Mvc;
 namespace BTCPayServer.Ethereum.UiUtil
 {
-    [ViewComponent(Name = "EthereumPayment")]
-    public class EthereumPaymentViewComponent : ViewComponent
+    [ViewComponent(Name = "EthereumPayments")]
+    public class EthereumPaymentssViewComponent : ViewComponent
     {
-
         private readonly EthereumOptions _ethereumOptions;
         private readonly StoreRepository _StoreRepository;
         private readonly BTCPayNetworkProvider _BtcPayNetworkProvider;
 
-        public EthereumPaymentViewComponent(EthereumOptions ethereumOptions, StoreRepository storeRepository, BTCPayNetworkProvider btcPayNetworkProvider)
+        public EthereumPaymentssViewComponent(EthereumOptions ethereumOptions, StoreRepository storeRepository, BTCPayNetworkProvider btcPayNetworkProvider)
         {
             _ethereumOptions = ethereumOptions;
             _StoreRepository = storeRepository;
@@ -40,7 +38,7 @@ namespace BTCPayServer.Ethereum.UiUtil
                 FillEthPaymentMethodViewModel(ethereumSupportedPaymentMethods.SingleOrDefault(t => t.CryptoCode.Equals(cryptoCode)), cryptoCode, excludeFilters))
             });
         }
-         
+
 
         EthPaymentMethodViewModel FillEthPaymentMethodViewModel(EthereumSupportedPaymentMethod ethereumSupportedPaymentMethod, string cryptoCode, IPaymentFilter excludeFilters)
         {
@@ -48,8 +46,8 @@ namespace BTCPayServer.Ethereum.UiUtil
             {
                 CryptoCode = cryptoCode,
                 Enabled = ethereumSupportedPaymentMethod != null ? !excludeFilters.Match(ethereumSupportedPaymentMethod.PaymentId) : false,
-                Mnemonic = ethereumSupportedPaymentMethod != null ? ethereumSupportedPaymentMethod.Mnemonic : ""
-
+                Mnemonic = ethereumSupportedPaymentMethod != null ? ethereumSupportedPaymentMethod.Mnemonic : "",
+                WalletId = ethereumSupportedPaymentMethod != null ? new WalletId(StoreData.Id, ethereumSupportedPaymentMethod.CryptoCode) : null
             };
         }
     }

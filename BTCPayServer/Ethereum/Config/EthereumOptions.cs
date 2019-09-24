@@ -9,12 +9,17 @@ namespace BTCPayServer.Ethereum.Config
         {
             EthereumConfigs = new List<EthereumConfig>();
         }
+
+        public string PostgresConnectionString { get; set; }
+        public string MySQLConnectionString { get; set; }
+        public string DataDir { get; set; }
         public List<EthereumConfig> EthereumConfigs { get; set; }
     }
 
     public class EthereumConfig
     {
         public Uri RpcUri { get; set; }
+        public string WebsocketUrl { get; set; }
         public string CryptoCode { get; set; }
     }
 }

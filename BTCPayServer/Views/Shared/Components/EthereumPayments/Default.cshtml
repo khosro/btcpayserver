@@ -38,6 +38,10 @@
                             }
                         </td>
                         <td class="text-right">
+                            @if (!string.IsNullOrWhiteSpace(item.Mnemonic))
+                            {
+                                <a asp-action="EthWalletTransactions" asp-controller="Wallets" asp-route-walletId="@item.WalletId">Wallet</a><span> - </span>
+                            }
                             <a id="Modify" asp-action="GetEthPaymentMethod" asp-controller="Stores" asp-route-cryptoCode="@item.CryptoCode">Modify</a>
                         </td>
                     </tr>
