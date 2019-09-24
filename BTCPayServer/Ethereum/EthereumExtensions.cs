@@ -18,7 +18,7 @@ namespace BTCPayServer
 {
     public static class EthereumExtensions
     {
-        const string EthereumClientDbInfo = "for EthereumClient";
+        private const string EthereumClientDbInfo = "for EthereumClient";
 
         public static IServiceCollection AddEthereumLike(this IServiceCollection services)
         {
@@ -40,14 +40,14 @@ namespace BTCPayServer
         {
             services.TryAddSingleton<EthereumClientApplicationDbContextFactory>(o =>
             {
-                var opts = o.GetRequiredService<EthereumOptions>();
+                EthereumOptions opts = o.GetRequiredService<EthereumOptions>();
                 EthereumClientApplicationDbContextFactory dbContext = null;
-                if (!String.IsNullOrEmpty(opts.PostgresConnectionString))
+                if (!string.IsNullOrEmpty(opts.PostgresConnectionString))
                 {
                     Logs.Configuration.LogInformation($"Postgres DB used ({opts.PostgresConnectionString}) {EthereumClientDbInfo}");
                     dbContext = new EthereumClientApplicationDbContextFactory(DatabaseType.Postgres, opts.PostgresConnectionString);
                 }
-                else if (!String.IsNullOrEmpty(opts.MySQLConnectionString))
+                else if (!string.IsNullOrEmpty(opts.MySQLConnectionString))
                 {
                     Logs.Configuration.LogInformation($"MySQL DB used ({opts.MySQLConnectionString}) {EthereumClientDbInfo}");
                     Logs.Configuration.LogWarning($"MySQL is not widely tested and should be considered experimental, we advise you to use postgres instead. {EthereumClientDbInfo}");
@@ -66,7 +66,7 @@ namespace BTCPayServer
 
             services.AddDbContext<EthereumClientApplicationDbContext>((provider, o) =>
             {
-                var factory = provider.GetRequiredService<EthereumClientApplicationDbContextFactory>();
+                EthereumClientApplicationDbContextFactory factory = provider.GetRequiredService<EthereumClientApplicationDbContextFactory>();
                 factory.ConfigureBuilder(o);
             });
 
@@ -108,6 +108,15 @@ namespace BTCPayServer
             if (string.IsNullOrWhiteSpace(result.MySQLConnectionString) && string.IsNullOrWhiteSpace(result.PostgresConnectionString))
             {
                 throw new ConfigException($"Please provide MySQLConnectionString or PostgresConnectionString {EthereumClientDbInfo} ");
+            }
+
+            string cn = !string.IsNullOrWhiteSpace(result.PostgresConnectionString) ? result.PostgresConnectionString : result.MySQLConnectionString;
+            BTCPayServerOptions _bTCPayServerOptions = serviceProvider.GetService<BTCPayServerOptions>();
+            string bTCPayServerCN = !string.IsNullOrWhiteSpace(_bTCPayServerOptions.PostgresConnectionString) ? _bTCPayServerOptions.PostgresConnectionString : _bTCPayServerOptions.MySQLConnectionString;
+
+            if (bTCPayServerCN.Equals(cn, StringComparison.InvariantCulture))
+            {
+                throw new ConfigException($"ConnectionString for Eth and Btcpay must be different ");
             }
 
             return result;

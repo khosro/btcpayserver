@@ -26,7 +26,8 @@ namespace BTCPayServer.Ethereum.Client
         private readonly BTCPayNetworkProvider _NetworkProvider;
         private readonly EthereumClientTransactionRepository _ethereumClientTransactionRepository;
         public EthNewPendingTransactionObservableSubscription PendingTransactionsSubscription { get; private set; }
-        StreamingWebSocketClient _streamingWebSocketClient;
+
+        private StreamingWebSocketClient _streamingWebSocketClient;
 
         public EthereumClient(Uri rpcUri, string websocketUrl, EthereumLikecBtcPayNetwork network, BTCPayNetworkProvider networkProvider, EthereumClientTransactionRepository ethereumClientTransactionRepository)
         {
@@ -34,9 +35,11 @@ namespace BTCPayServer.Ethereum.Client
             _rpcUri = rpcUri;
             _NetworkProvider = networkProvider;
             _web3 = new Web3(_rpcUri.AbsoluteUri);
-            this._ethereumClientTransactionRepository = ethereumClientTransactionRepository;
+            _ethereumClientTransactionRepository = ethereumClientTransactionRepository;
             _streamingWebSocketClient = new StreamingWebSocketClient(websocketUrl);
             PendingTransactionsSubscription = new EthNewPendingTransactionObservableSubscription(_streamingWebSocketClient);
+            _streamingWebSocketClient.StartAsync().Wait();
+            PendingTransactionsSubscription.SubscribeAsync().Wait();
         }
 
         public async Task<EthereumStatusResult> GetStatusAsync(CancellationToken cancellation = default)
@@ -96,7 +99,7 @@ namespace BTCPayServer.Ethereum.Client
             for (int i = 0; i < 10; i++)
             {
                 Account account = wallet.GetAccount(i);
-                accounts.Add(account.Address);
+                accounts.Add(account.Address.ToLowerInvariant());
             }
 
             return await _ethereumClientTransactionRepository.FindTransactionByAddresses(accounts);

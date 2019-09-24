@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Threading.Tasks;
 using BTCPayServer.Payments;
 using BTCPayServer.Services.Invoices;
 using Newtonsoft.Json;
@@ -10,7 +7,7 @@ using Newtonsoft.Json.Linq;
 
 namespace BTCPayServer.Ethereum.Payments
 {
- 
+
     public class EthereumPaymentType : PaymentType
     {
         public static EthereumPaymentType Instance { get; } = new EthereumPaymentType();
@@ -37,7 +34,24 @@ namespace BTCPayServer.Ethereum.Payments
 
         public override ISupportedPaymentMethod DeserializeSupportedPaymentMethod(BTCPayNetworkBase network, JToken value)
         {
-            return JsonConvert.DeserializeObject<EthereumSupportedPaymentMethod>(value.ToString());
+            if (network == null)
+            {
+                throw new ArgumentNullException(nameof(network));
+            }
+
+            if (value == null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            if (value is JObject jobj)
+            {
+                EthereumSupportedPaymentMethod scheme = JsonConvert.DeserializeObject<EthereumSupportedPaymentMethod>(value.ToString());
+                scheme.Network = network;
+                return scheme;
+            }
+            // Legacy
+            return null;
         }
 
         public override string GetTransactionLink(BTCPayNetworkBase network, string txId)
