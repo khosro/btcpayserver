@@ -56,7 +56,9 @@ namespace BTCPayServer.Ethereum.Services
                         {
                             Logs.PayServer.LogInformation($"Eth new TransactionHash {transaction.TransactionHash}");
 
-                            _Aggregator.Publish(new EthNewTransactionEvent(ethereumWallet, transaction));
+                            EthereumClientTransactionData ethereumClientTransactionData = new EthereumClientTransactionData();
+                            ethereumClientTransactionData.Init(transaction);
+                            _Aggregator.Publish(new EthNewTransactionEvent(ethereumWallet, ethereumClientTransactionData));
                         }
                         lastBlockNumber = lastBlockNumber + 1;
                     }
@@ -79,7 +81,7 @@ namespace BTCPayServer.Ethereum.Services
             );
 
             client.PendingTransactionsSubscription.GetSubscriptionDataResponsesAsObservable().Subscribe(async transactionHash =>
-                 _Aggregator.Publish(new EthNewTransactionEvent(ethereumWallet, await client.GetTransactionByNumber(transactionHash).ConfigureAwait(false)))
+                 _Aggregator.Publish(new EthNewTransactionEvent(ethereumWallet, await client.GetTransactionAsyncByTransactionId(transactionHash).ConfigureAwait(false)))
               );
         }
     }

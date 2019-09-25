@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Ethereum.Client.Data.Migrations
 {
@@ -12,16 +13,17 @@ namespace Ethereum.Client.Data.Migrations
                 {
                     Id = table.Column<string>(nullable: false),
                     TransactionHash = table.Column<string>(nullable: true),
-                    TransactionIndex = table.Column<string>(nullable: true),
                     BlockHash = table.Column<string>(nullable: true),
-                    BlockNumber = table.Column<string>(nullable: true),
                     From = table.Column<string>(nullable: true),
                     To = table.Column<string>(nullable: true),
+                    Amount = table.Column<decimal>(nullable: false),
+                    Input = table.Column<string>(nullable: true),
+                    Nonce = table.Column<string>(nullable: true),
+                    BlockNumber = table.Column<string>(nullable: true),
+                    TransactionIndex = table.Column<string>(nullable: true),
                     Gas = table.Column<string>(nullable: true),
                     GasPrice = table.Column<string>(nullable: true),
-                    Value = table.Column<string>(nullable: true),
-                    Input = table.Column<string>(nullable: true),
-                    Nonce = table.Column<string>(nullable: true)
+                    CreatedDateTime = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {

@@ -155,6 +155,7 @@ namespace BTCPayServer.Ethereum.HostedServices
                      await NewBlockAndTransactionService.GetLatestBlocksAsync(_Aggregator, client, wallet);
                 }
                 */
+
                 /*
                  //If we use old code GetLatestBlocksAsyncOld then we must use timer.
                  * bool isRunning = false;

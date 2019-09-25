@@ -1,31 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using BTCPayServer.Ethereum.Client;
+using BTCPayServer.Ethereum.Model;
 using BTCPayServer.Ethereum.Payments;
 using Microsoft.Extensions.Caching.Memory;
-using Nethereum.RPC.Eth.DTOs;
 
 namespace BTCPayServer.Ethereum.Services.Wallet
 {
-    //public class ReceivedCoin
-    //{
-    //    public Coin Coin { get; set; }
-    //    public DateTimeOffset Timestamp { get; set; }
-    //    public KeyPath KeyPath { get; set; }
-    //}
-    //public class NetworkCoins
-    //{
-    //    public class TimestampedCoin
-    //    {
-    //        public DateTimeOffset DateTime { get; set; }
-    //        public Coin Coin { get; set; }
-    //    }
-    //    public TimestampedCoin[] TimestampedCoins { get; set; }
-    //    public DerivationStrategyBase Strategy { get; set; }
-    //    public EthereumWallet Wallet { get; set; }
-    //}
     public class EthereumWallet
     {
         private EthereumClient _Client;
@@ -43,57 +25,46 @@ namespace BTCPayServer.Ethereum.Services.Wallet
             }
 
             _Client = client;
-            _Network = network;
+            Network = network;
             _MemoryCache = memoryCache;
         }
+        public EthereumLikecBtcPayNetwork Network { get; }
 
-
-        private readonly EthereumLikecBtcPayNetwork _Network;
-        public EthereumLikecBtcPayNetwork Network
-        {
-            get
-            {
-                return _Network;
-            }
-        }
-
-        public TimeSpan CacheSpan { get; private set; } = TimeSpan.FromMinutes(5);
-
-        public async Task<Transaction> GetTransactionAsync(string txId, CancellationToken cancellation = default(CancellationToken))
+        public async Task<EthereumClientTransactionData> GetTransactionAsyncByTransactionId(string txId)
         {
             if (txId == null)
             {
                 throw new ArgumentNullException(nameof(txId));
             }
 
-            Transaction tx = await _Client.GetTransactionAsync(txId, cancellation);
+            EthereumClientTransactionData tx = await _Client.GetTransactionAsyncByTransactionId(txId);
             return tx;
         }
 
-        public Task<IEnumerable<Transaction>> FetchTransactions(EthereumSupportedPaymentMethod paymentMethod)
+        public Task<IEnumerable<EthereumClientTransactionData>> FetchTransactions(EthereumSupportedPaymentMethod paymentMethod)
         {
             return _Client.GetTransactionsAsync(paymentMethod);
         }
 
-        //TODO.Need impl
-        //public Task<BroadcastResult[]> BroadcastTransactionsAsync(List<Transaction> transactions)
-        //{
-        //    Task<BroadcastResult>[] tasks = transactions.Select(t => _Client.BroadcastAsync(t)).ToArray();
-        //    return Task.WhenAll(tasks);
-        //}
+        public async Task<Decimal> GetBalance(string address)
+        {
+            return await _Client.GetBalance(address);
+        }
 
-        //TODO.Change impl.
-        //public async Task<Money> GetBalance(DerivationStrategyBase derivationStrategy, CancellationToken cancellation = default(CancellationToken))
-        //{
-        //    return null;
-        //}
+        public async Task<Dictionary<string, decimal>> GetBalanceByMnemonic(string mnemonic)
+        {
+            return await _Client.GetBalanceByMnemonic(mnemonic);
+        }
 
-        //public void InvalidateCache(EthereumSupportedPaymentMethod strategy)
-        //{
-        //    _MemoryCache.Remove("CACHEDCOINS_" + strategy.ToString());
-        //    _FetchingUTXOs.TryRemove(strategy.ToString(), out TaskCompletionSource<UTXOChanges> unused);
-        //}
+        public async Task<Dictionary<string, decimal>> GetBalances(IEnumerable<string> addresses)
+        {
+            return await _Client.GetBalances(addresses);
 
-        //private ConcurrentDictionary<string, TaskCompletionSource<UTXOChanges>> _FetchingUTXOs = new ConcurrentDictionary<string, TaskCompletionSource<UTXOChanges>>();
+        }
+
+        public async Task<string> BroadcastAsync(EthWalletSendModel ethWalletSendModel, string mnemonic)
+        {
+            return await _Client.BroadcastAsync(ethWalletSendModel, mnemonic);
+        }
     }
 }

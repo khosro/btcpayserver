@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using BTCPayServer.Data;
+using BTCPayServer.Ethereum.Client;
+using BTCPayServer.Ethereum.Model;
 using BTCPayServer.Ethereum.Payments;
 using BTCPayServer.Ethereum.Services.Wallet;
 using BTCPayServer.HostedServices;
@@ -51,22 +55,22 @@ namespace BTCPayServer.Controllers
             }
             EthereumWallet wallet = _ethereumWalletProvider.GetWallet(paymentMethod.Network);
             Task<WalletBlobInfo> walletBlobAsync = WalletRepository.GetWalletInfo(walletId);
-            Task<System.Collections.Generic.Dictionary<string, WalletTransactionInfo>> walletTransactionsInfoAsync = WalletRepository.GetWalletTransactionsInfo(walletId);
-            System.Collections.Generic.IEnumerable<Nethereum.RPC.Eth.DTOs.Transaction> transactions = await wallet.FetchTransactions(paymentMethod);
+            Task<Dictionary<string, WalletTransactionInfo>> walletTransactionsInfoAsync = WalletRepository.GetWalletTransactionsInfo(walletId);
+            IEnumerable<EthereumClientTransactionData> transactions = await wallet.FetchTransactions(paymentMethod);
             WalletBlobInfo walletBlob = await walletBlobAsync;
-            System.Collections.Generic.Dictionary<string, WalletTransactionInfo> walletTransactionsInfo = await walletTransactionsInfoAsync;
+            Dictionary<string, WalletTransactionInfo> walletTransactionsInfo = await walletTransactionsInfoAsync;
             var model = new ListTransactionsViewModel();
-            foreach (Nethereum.RPC.Eth.DTOs.Transaction tx in transactions)
+            foreach (var tx in transactions)
             {
                 var vm = new ListTransactionsViewModel.TransactionViewModel
                 {
                     Id = tx.TransactionHash
                 };
                 vm.Link = string.Format(CultureInfo.InvariantCulture, paymentMethod.Network.BlockExplorerLink, vm.Id);
-                vm.Positive = tx.Value.Value > 0;
-                vm.Balance = tx.Value.Value.ToString();
+                vm.Positive = tx.Amount > 0;
+                vm.Balance = tx.Amount.ToString();
+                vm.Timestamp = tx.CreatedDateTime;
                 //vm.IsConfirmed = tx. != 0;
-                //vm.Timestamp = tx.Input.;
 
                 if (walletTransactionsInfo.TryGetValue(tx.TransactionHash, out WalletTransactionInfo transactionInfo))
                 {
@@ -85,6 +89,56 @@ namespace BTCPayServer.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        [Route("ethwallet/{walletId}/send")]
+        public async Task<IActionResult> EthWalletSend([ModelBinder(typeof(WalletIdModelBinder))] WalletId walletId)
+        {
+            if (walletId?.StoreId == null)
+                return NotFound();
+            var store = await Repository.FindStore(walletId.StoreId, GetUserId());
+            var paymentMethod = await GetEthPatymentMethod(walletId);
+            if (paymentMethod == null)
+                return NotFound();
+            var network = this.NetworkProvider.GetNetwork<BTCPayNetworkBase>(walletId?.CryptoCode);
+            if (network == null)
+                return NotFound();
+            var storeData = store.GetStoreBlob();
+
+            EthereumWallet wallet = _ethereumWalletProvider.GetWallet(paymentMethod.Network);
+            return View(await FillModel(wallet, paymentMethod));
+        }
+
+        [HttpPost]
+        [Route("ethwallet/{walletId}/send")]
+        public async Task<IActionResult> EthWalletSend(
+            [ModelBinder(typeof(WalletIdModelBinder))]
+            WalletId walletId, EthWalletSendModel vm, string command = "", CancellationToken cancellation = default)
+        {
+            var paymentMethod = await GetEthPatymentMethod(walletId);
+            EthereumWallet wallet = _ethereumWalletProvider.GetWallet(paymentMethod.Network);
+            try
+            {
+                string transhash = await wallet.BroadcastAsync(vm, paymentMethod.Mnemonic);
+                var network = NetworkProvider.GetNetwork<BTCPayNetwork>(walletId.CryptoCode);
+                StatusMessage = $"Transaction broadcasted successfully ({transhash})";
+                return RedirectToAction(nameof(EthWalletTransactions));
+            }
+            catch (Exception ex)
+            {
+                vm = await FillModel(wallet, paymentMethod);
+                vm.Error = "Unknown Error" + ex.Message;
+                return View(vm);
+            }
+        }
+
+        async Task<EthWalletSendModel> FillModel(EthereumWallet wallet, EthereumSupportedPaymentMethod paymentMethod)
+        {
+            var address2Balance = await wallet.GetBalanceByMnemonic(paymentMethod.Mnemonic);
+            var model = new EthWalletSendModel();
+            model.InitAddress(address2Balance);
+            return model;
+        }
+
         private async Task<EthereumSupportedPaymentMethod> GetEthPatymentMethod(WalletId walletId)
         {
             StoreData store = (await Repository.FindStore(walletId.StoreId, GetUserId()));
@@ -97,7 +151,6 @@ namespace BTCPayServer.Controllers
                             .FirstOrDefault(p => p.PaymentId.PaymentType == Payments.PaymentTypes.EthLike && p.PaymentId.CryptoCode == walletId.CryptoCode);
             return paymentMethod;
         }
-
 
     }
 }

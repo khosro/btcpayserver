@@ -62,7 +62,6 @@ namespace BTCPayServer.Controllers
             blob.SetExcluded(new PaymentMethodId(viewModel.CryptoCode, EthereumPaymentType.Instance), !viewModel.Enabled);
             storeData.SetStoreBlob(blob);
             await _StoreRepository.UpdateStore(storeData);
-            //return RedirectToAction("GetEthPaymentMethods", new { StatusMessage = $"{cryptoCode} settings updated successfully", storeId = StoreData.Id });
             return RedirectToAction("UpdateStore", "Stores", new
             {
                 storeId = StoreData.Id
