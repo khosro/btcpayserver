@@ -4,9 +4,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.9" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\NBXplorer\NBXplorer.Client\NBXplorer.Client.csproj" />
+    <PackageReference Include="NBitcoin" Version="4.2.4" />
+    <PackageReference Include="NBXplorer.Client" Version="2.0.0.19" />
   </ItemGroup>
 </Project>
