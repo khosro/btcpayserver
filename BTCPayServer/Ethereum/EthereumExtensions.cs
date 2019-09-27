@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using BTCPayServer.Ethereum;
+using BTCPayServer.Ethereum.HostedServices;
 using BTCPayServer.Ethereum.Services.Wallet;
 using BTCPayServer.Ethereum.UiUtil;
 using BTCPayServer.HostedServices;
@@ -23,6 +24,7 @@ namespace BTCPayServer
             services.TryAddSingleton<EthereumDashboard>();
             services.TryAddSingleton<EthereumUiUtilService>();
             services.AddSingleton<IHostedService, EthereumWaiters>();
+            services.AddSingleton<IHostedService, EthereumListener>();
 
             //Database(services);
 

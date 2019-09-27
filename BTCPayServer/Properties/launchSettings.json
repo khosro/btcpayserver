@@ -49,7 +49,7 @@
     },
     "newProfile1": {
       "commandName": "Project",
-      "commandLineArgs": "--conf=\"D:\\VS_New\\Trading Engine\\z.Sample_Trading Engine\\btcpayserver\\btcpay\\btcpay.config\"  --network=regtest  --chains \"btc,eth\" --btcexplorerurl http://127.0.0.1:24444 --btcexplorercookiefile \"D:\\VS_New\\Trading Engine\\z.Sample_Trading Engine\\btcpayserver\\NBXplorer\\data\\RegTest\\.cookie\"",
+      "commandLineArgs": "--conf=\"D:\\VS_New\\Trading Engine\\z.Sample_Trading Engine\\btcpayserver\\btcpay\\btcpay.config\"  --network=regtest  --chains \"btc,eth\" --btcexplorerurl http://127.0.0.1:24444 --ethexplorerurl http://127.0.0.1:24444 --btcexplorercookiefile \"D:\\VS_New\\Trading Engine\\z.Sample_Trading Engine\\btcpayserver\\NBXplorer\\data\\RegTest\\.cookie\"  --ethexplorercookiefile \"D:\\VS_New\\Trading Engine\\z.Sample_Trading Engine\\btcpayserver\\NBXplorer\\data\\RegTest\\.cookie\"",
       "environmentVariables": {
         "BTCPAY_BUNDLEJSCSS": "false",
         "ASPNETCORE_ENVIRONMENT": "Development"

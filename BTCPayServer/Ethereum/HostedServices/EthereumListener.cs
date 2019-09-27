@@ -1,46 +1,37 @@
 ﻿using System;
-using Microsoft.Extensions.Logging;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
+using BTCPayServer.Ethereum.Events;
+using BTCPayServer.Ethereum.Payments;
+using BTCPayServer.Ethereum.Services.Wallet;
+using BTCPayServer.HostedServices;
 using BTCPayServer.Logging;
+using BTCPayServer.Payments;
 using BTCPayServer.Services.Invoices;
-using Microsoft.AspNetCore.Hosting;
+using EthereumXplorer;
+using EthereumXplorer.Client;
 using Microsoft.Extensions.Hosting;
-using NBXplorer;
-using System.Collections.Concurrent;
-using NBXplorer.DerivationStrategy;
-using BTCPayServer.Events;
-using BTCPayServer.Services;
-using BTCPayServer.Services.Wallets;
+using Microsoft.Extensions.Logging;
 using NBitcoin;
 using NBXplorer.Models;
-using BTCPayServer.Payments;
-using BTCPayServer.HostedServices;
-using BTCPayServer.Ethereum.Events;
-using BTCPayServer.Ethereum.Services.Wallet;
-using EthereumXplorer.Client;
-using EthereumXplorer;
-using BTCPayServer.Ethereum.Payments;
 
 namespace BTCPayServer.Ethereum.HostedServices
 {
-    public class EthereumListener
+    public class EthereumListener : IHostedService
     {
-    }
-
-    public class NBXplorerListener : IHostedService
-    {
-        EventAggregator _Aggregator;
-        EthereumExplorerClientProvider _ExplorerClients;
-        Microsoft.Extensions.Hosting.IApplicationLifetime _Lifetime;
-        InvoiceRepository _InvoiceRepository;
+        private EventAggregator _Aggregator;
+        private EthereumExplorerClientProvider _ExplorerClients;
+        private readonly Microsoft.Extensions.Hosting.IApplicationLifetime _Lifetime;
+        private readonly InvoiceRepository _InvoiceRepository;
         private TaskCompletionSource<bool> _RunningTask;
         private CancellationTokenSource _Cts;
-        EthereumWalletProvider _Wallets;
+        private EthereumWalletProvider _Wallets;
 
-        public NBXplorerListener(EthereumExplorerClientProvider explorerClients,
+        public EthereumListener(EthereumExplorerClientProvider explorerClients,
                                 EthereumWalletProvider wallets,
                                 InvoiceRepository invoiceRepository,
                                 EventAggregator aggregator,
@@ -54,11 +45,10 @@ namespace BTCPayServer.Ethereum.HostedServices
             _Lifetime = lifetime;
         }
 
-        CompositeDisposable leases = new CompositeDisposable();
-        ConcurrentDictionary<string, EthereumWebsocketNotificationSession> _SessionsByCryptoCode = new ConcurrentDictionary<string, EthereumWebsocketNotificationSession>();
+        private CompositeDisposable leases = new CompositeDisposable();
+        private ConcurrentDictionary<string, EthereumWebsocketNotificationSession> _SessionsByCryptoCode = new ConcurrentDictionary<string, EthereumWebsocketNotificationSession>();
         private Timer _ListenPoller;
-
-        TimeSpan _PollInterval;
+        private TimeSpan _PollInterval;
         public TimeSpan PollInterval
         {
             get
@@ -83,7 +73,7 @@ namespace BTCPayServer.Ethereum.HostedServices
             {
                 if (evt.NewState == EthereumState.Ready)
                 {
-                    var wallet = _Wallets.GetWallet(evt.Network);
+                    EthereumWallet wallet = _Wallets.GetWallet(evt.Network);
                     if (_Wallets.IsAvailable(wallet.Network))
                     {
                         await Listen(wallet);
@@ -93,7 +83,7 @@ namespace BTCPayServer.Ethereum.HostedServices
 
             _ListenPoller = new Timer(async s =>
             {
-                foreach (var wallet in _Wallets.GetWallets())
+                foreach (EthereumWallet wallet in _Wallets.GetWallets())
                 {
                     if (_Wallets.IsAvailable(wallet.Network))
                     {
@@ -107,18 +97,27 @@ namespace BTCPayServer.Ethereum.HostedServices
 
         private async Task Listen(EthereumWallet wallet)
         {
-            var network = wallet.Network;
+            EthereumLikecBtcPayNetwork network = wallet.Network;
             bool cleanup = false;
             try
             {
                 if (_SessionsByCryptoCode.ContainsKey(network.CryptoCode))
+                {
                     return;
-                var client = _ExplorerClients.GetExplorerClient(network);
+                }
+
+                EthereumExplorerClient client = _ExplorerClients.GetExplorerClient(network);
                 if (client == null)
+                {
                     return;
+                }
+
                 if (_Cts.IsCancellationRequested)
+                {
                     return;
-                var session = await client.CreateWebsocketNotificationSessionAsync(_Cts.Token).ConfigureAwait(false);
+                }
+
+                EthereumWebsocketNotificationSession session = await client.CreateWebsocketNotificationSessionAsync(_Cts.Token).ConfigureAwait(false);
                 if (!_SessionsByCryptoCode.TryAdd(network.CryptoCode, session))
                 {
                     await session.DisposeAsync();
@@ -128,16 +127,16 @@ namespace BTCPayServer.Ethereum.HostedServices
 
                 using (session)
                 {
-                 
+
                     Logs.PayServer.LogInformation($"{network.CryptoCode}: Checking if any pending invoice got paid while offline...");
-                   //TODO. Impl it.
+                    //TODO. Impl it.
                     // int paymentCount = await FindPaymentViaPolling(wallet, network);
                     //Logs.PayServer.LogInformation($"{network.CryptoCode}: {paymentCount} payments happened while offline");
 
-                    Logs.PayServer.LogInformation($"Connected to WebSocket of NBXplorer ({network.CryptoCode})");
+                    Logs.PayServer.LogInformation($"Connected to WebSocket of EthereumXplorer ({network.CryptoCode})");
                     while (!_Cts.IsCancellationRequested)
                     {
-                        var newEvent = await session.NextEventAsync(_Cts.Token).ConfigureAwait(false);
+                        EthereumXplorer.Client.Models.Events.EthereumNewEventBase newEvent = await session.NextEventAsync(_Cts.Token).ConfigureAwait(false);
                         switch (newEvent)
                         {
                             case EthNewBlockEvent evt:
@@ -175,7 +174,7 @@ namespace BTCPayServer.Ethereum.HostedServices
                                 //}
                                 break;
                             default:
-                                Logs.PayServer.LogWarning("Received unknown message from NBXplorer");
+                                Logs.PayServer.LogWarning("Received unknown message from EthereumXplorer");
                                 break;
                         }
                     }
@@ -184,13 +183,13 @@ namespace BTCPayServer.Ethereum.HostedServices
             catch when (_Cts.IsCancellationRequested) { }
             catch (Exception ex)
             {
-                Logs.PayServer.LogError(ex, $"Error while connecting to WebSocket of NBXplorer ({network.CryptoCode})");
+                Logs.PayServer.LogError(ex, $"Error while connecting to WebSocket of EthereumXplorer ({network.CryptoCode})");
             }
             finally
             {
                 if (cleanup)
                 {
-                    Logs.PayServer.LogInformation($"Disconnected from WebSocket of NBXplorer ({network.CryptoCode})");
+                    Logs.PayServer.LogInformation($"Disconnected from WebSocket of EthereumXplorer ({network.CryptoCode})");
                     _SessionsByCryptoCode.TryRemove(network.CryptoCode, out EthereumWebsocketNotificationSession unused);
                     if (_SessionsByCryptoCode.Count == 0 && _Cts.IsCancellationRequested)
                     {
@@ -207,8 +206,7 @@ namespace BTCPayServer.Ethereum.HostedServices
             return Task.WhenAny(_RunningTask.Task, Task.Delay(-1, cancellationToken));
         }
 
-
-        IEnumerable<EthereumLikePaymentData> GetAllBitcoinPaymentData(InvoiceEntity invoice)
+        private IEnumerable<EthereumLikePaymentData> GetAllBitcoinPaymentData(InvoiceEntity invoice)
         {
             return invoice.GetPayments()
                     .Where(p => p.GetPaymentMethodId().PaymentType == PaymentTypes.BTCLike)
@@ -266,17 +264,16 @@ namespace BTCPayServer.Ethereum.HostedServices
         //    return invoice;
         //}
 
-        class TransactionConflict
+        private class TransactionConflict
         {
             public Dictionary<uint256, TransactionResult> Transactions { get; set; } = new Dictionary<uint256, TransactionResult>();
 
-
-            uint256 _Winner;
+            private uint256 _Winner;
             public bool IsWinner(uint256 txId)
             {
                 if (_Winner == null)
                 {
-                    var confirmed = Transactions.FirstOrDefault(t => t.Value.Confirmations >= 1);
+                    KeyValuePair<uint256, TransactionResult> confirmed = Transactions.FirstOrDefault(t => t.Value.Confirmations >= 1);
                     if (!confirmed.Equals(default(KeyValuePair<uint256, TransactionResult>)))
                     {
                         _Winner = confirmed.Key;
@@ -293,7 +290,8 @@ namespace BTCPayServer.Ethereum.HostedServices
                 return _Winner == txId;
             }
         }
-        class TransactionConflicts : List<TransactionConflict>
+
+        private class TransactionConflicts : List<TransactionConflict>
         {
             public TransactionConflicts(IEnumerable<TransactionConflict> collection) : base(collection)
             {
@@ -308,10 +306,10 @@ namespace BTCPayServer.Ethereum.HostedServices
         private TransactionConflicts GetConflicts(IEnumerable<TransactionResult> transactions)
         {
             Dictionary<OutPoint, TransactionConflict> conflictsByOutpoint = new Dictionary<OutPoint, TransactionConflict>();
-            foreach (var tx in transactions)
+            foreach (TransactionResult tx in transactions)
             {
-                var hash = tx.Transaction.GetHash();
-                foreach (var input in tx.Transaction.Inputs)
+                uint256 hash = tx.Transaction.GetHash();
+                foreach (TxIn input in tx.Transaction.Inputs)
                 {
                     TransactionConflict conflict = new TransactionConflict();
                     if (!conflictsByOutpoint.TryAdd(input.PrevOut, conflict))
@@ -319,13 +317,15 @@ namespace BTCPayServer.Ethereum.HostedServices
                         conflict = conflictsByOutpoint[input.PrevOut];
                     }
                     if (!conflict.Transactions.ContainsKey(hash))
+                    {
                         conflict.Transactions.Add(hash, tx);
+                    }
                 }
             }
             return new TransactionConflicts(conflictsByOutpoint.Where(c => c.Value.Transactions.Count > 1).Select(c => c.Value));
         }
 
-    
+
         //private async Task<int> FindPaymentViaPolling(BTCPayWallet wallet, BTCPayNetworkBase network)
         //{
         //    int totalPayment = 0;

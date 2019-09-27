@@ -56,7 +56,7 @@ namespace BTCPayServer.Controllers
             EthereumWallet wallet = _ethereumWalletProvider.GetWallet(paymentMethod.Network);
             Task<WalletBlobInfo> walletBlobAsync = WalletRepository.GetWalletInfo(walletId);
             Task<Dictionary<string, WalletTransactionInfo>> walletTransactionsInfoAsync = WalletRepository.GetWalletTransactionsInfo(walletId);
-            IEnumerable<EthereumClientTransactionData> transactions = await wallet.FetchTransactions(paymentMethod);
+            IEnumerable<EthereumClientTransactionData> transactions = await wallet.GetTransactionsAsync(paymentMethod.Mnemonic);
             WalletBlobInfo walletBlob = await walletBlobAsync;
             Dictionary<string, WalletTransactionInfo> walletTransactionsInfo = await walletTransactionsInfoAsync;
             var model = new ListTransactionsViewModel();

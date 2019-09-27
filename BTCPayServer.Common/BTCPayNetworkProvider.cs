@@ -121,5 +121,11 @@ namespace BTCPayServer
             }
             return network as T;
         }
+
+        public IEnumerable<BTCPayNetworkBase> GetAllExcludeSome()
+        {
+            return _Networks.Values.Where(t => !ExcludedTypes.Contains(t.GetType()));
+        }
+        private List<Type> ExcludedTypes = new List<Type>() { typeof(EthereumLikecBtcPayNetwork) };
     }
 }

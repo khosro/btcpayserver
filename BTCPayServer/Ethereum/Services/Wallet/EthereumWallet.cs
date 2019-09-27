@@ -43,9 +43,9 @@ namespace BTCPayServer.Ethereum.Services.Wallet
             return tx;
         }
 
-        public Task<IEnumerable<EthereumClientTransactionData>> FetchTransactions(EthereumSupportedPaymentMethod paymentMethod)
+        public Task<IEnumerable<EthereumClientTransactionData>> GetTransactionsAsync(string mnemonic)
         {
-            return _Client.GetTransactionsAsync(paymentMethod.Mnemonic);
+            return _Client.GetTransactionsAsync(mnemonic);
         }
 
         public async Task<decimal> GetBalance(string address)

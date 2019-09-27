@@ -5,7 +5,7 @@ namespace BTCPayServer
     {
         public void InitEthereum()
         {
-            //NBXplorer.NBXplorerNetwork nbxplorerNetwork = NBXplorerNetworkProvider.GetFromCryptoCode("ETH");
+            NBXplorer.NBXplorerNetwork nbxplorerNetwork = NBXplorerNetworkProvider.GetFromCryptoCode("ETH");
 
             Add(new EthereumLikecBtcPayNetwork()
             {
@@ -17,10 +17,10 @@ namespace BTCPayServer
                         : "https://ropsten.etherscan.io/tx/{0}",
                 CryptoImagePath = "/imlegacy/ethereum.png",
                 /*
-                 * If EthereumLikecBtcPayNetwork inherit from BTCPayNetwork, then we can use them
-                 * NBitcoinNetwork = nbxplorerNetwork.NBitcoinNetwork,
+                 * If EthereumLikecBtcPayNetwork inherit from BTCPayNetwork, then we can use them*/
+                NBitcoinNetwork = nbxplorerNetwork.NBitcoinNetwork,
                 NBXplorerNetwork = nbxplorerNetwork,
-                CoinType = new KeyPath("60'")*/
+                CoinType = new KeyPath("60'")
             });
         }
     }
