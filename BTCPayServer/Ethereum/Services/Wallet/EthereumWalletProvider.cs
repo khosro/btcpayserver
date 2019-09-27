@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using EthereumXplorer.Client;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
@@ -9,9 +10,9 @@ namespace BTCPayServer.Ethereum.Services.Wallet
 
     public class EthereumWalletProvider
     {
-        private EthereumClientProvider _EthereumClientProvider;
+        private EthereumExplorerClientProvider _EthereumClientProvider;
         private readonly IOptions<MemoryCacheOptions> _Options;
-        public EthereumWalletProvider(EthereumClientProvider ethereumClientProvider,
+        public EthereumWalletProvider(EthereumExplorerClientProvider ethereumClientProvider,
                                     IOptions<MemoryCacheOptions> memoryCacheOption,
                                     BTCPayNetworkProvider networkProvider)
         {
@@ -25,7 +26,7 @@ namespace BTCPayServer.Ethereum.Services.Wallet
 
             foreach (EthereumLikecBtcPayNetwork network in networkProvider.GetAll().OfType<EthereumLikecBtcPayNetwork>())
             {
-                Client.EthereumClient ethereumClient = _EthereumClientProvider.GetEthereumClient(network.CryptoCode);
+                EthereumExplorerClient ethereumClient = _EthereumClientProvider.GetExplorerClient(network.CryptoCode);
                 if (ethereumClient == null)
                 {
                     continue;

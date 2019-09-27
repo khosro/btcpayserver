@@ -1,7 +1,7 @@
 ﻿@using BTCPayServer.Views.Stores
 @model BTCPayServer.Ethereum.ViewModels.EthStoreViewModel
-@inject BTCPayServer.Ethereum.Config.EthereumOptions EthereumOptions;
-@if (EthereumOptions.EthereumConfigs.Any())
+@inject BTCPayServer.Ethereum.UiUtil.EthereumUiUtilService EthereumUiUtilService;
+@if (EthereumUiUtilService.IsEthNetworkProvides())
 {
 
     <div class="row">

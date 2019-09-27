@@ -2,12 +2,13 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
-using BTCPayServer.Ethereum.Client;
+using BTCPayServer.Ethereum;
 using BTCPayServer.Ethereum.Events;
 using BTCPayServer.Logging;
+using EthereumXplorer.Client;
+using EthereumXplorer.Client.Models;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -19,14 +20,6 @@ namespace BTCPayServer.HostedServices
         NotConnected,
         Synching,
         Ready
-    }
-    public class EthereumStatusResult
-    {
-        public bool IsFullySynched { get; set; }
-        public BigInteger CurrentHeight { get; set; }
-        public BigInteger ChainHeight { get; set; }
-        public string CryptoCode { get; set; }
-        public string Version { get; set; }
     }
 
     public class EthereumDashboard
@@ -71,9 +64,9 @@ namespace BTCPayServer.HostedServices
     public class EthereumWaiters : IHostedService
     {
         private List<EthereumWaiter> _Waiters = new List<EthereumWaiter>();
-        public EthereumWaiters(EthereumDashboard dashboard, EthereumClientProvider clientProvider, EventAggregator eventAggregator)
+        public EthereumWaiters(EthereumDashboard dashboard, EthereumExplorerClientProvider clientProvider, EventAggregator eventAggregator)
         {
-            foreach ((EthereumLikecBtcPayNetwork, EthereumClient) client in clientProvider.GetAll())
+            foreach ((EthereumLikecBtcPayNetwork, EthereumExplorerClient) client in clientProvider.GetAll())
             {
                 _Waiters.Add(new EthereumWaiter(dashboard, client.Item1, client.Item2, eventAggregator));
             }
@@ -92,7 +85,7 @@ namespace BTCPayServer.HostedServices
     public class EthereumWaiter : IHostedService
     {
 
-        public EthereumWaiter(EthereumDashboard dashboard, EthereumLikecBtcPayNetwork network, EthereumClient client, EventAggregator aggregator)
+        public EthereumWaiter(EthereumDashboard dashboard, EthereumLikecBtcPayNetwork network, EthereumExplorerClient client, EventAggregator aggregator)
         {
             _Network = network;
             _Client = client;
@@ -103,7 +96,7 @@ namespace BTCPayServer.HostedServices
         private EthereumDashboard _Dashboard;
         private EthereumLikecBtcPayNetwork _Network;
         private EventAggregator _Aggregator;
-        private EthereumClient _Client;
+        private EthereumExplorerClient _Client;
         private CancellationTokenSource _Cts;
         private Task _Loop;
         public Task StartAsync(CancellationToken cancellationToken)

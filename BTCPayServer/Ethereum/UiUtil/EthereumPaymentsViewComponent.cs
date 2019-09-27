@@ -1,6 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using BTCPayServer.Data;
-using BTCPayServer.Ethereum.Config;
 using BTCPayServer.Ethereum.Payments;
 using BTCPayServer.Ethereum.ViewModels;
 using BTCPayServer.Payments;
@@ -11,13 +11,11 @@ namespace BTCPayServer.Ethereum.UiUtil
     [ViewComponent(Name = "EthereumPayments")]
     public class EthereumPaymentssViewComponent : ViewComponent
     {
-        private readonly EthereumOptions _ethereumOptions;
         private readonly StoreRepository _StoreRepository;
         private readonly BTCPayNetworkProvider _BtcPayNetworkProvider;
 
-        public EthereumPaymentssViewComponent(EthereumOptions ethereumOptions, StoreRepository storeRepository, BTCPayNetworkProvider btcPayNetworkProvider)
+        public EthereumPaymentssViewComponent(StoreRepository storeRepository, BTCPayNetworkProvider btcPayNetworkProvider)
         {
-            _ethereumOptions = ethereumOptions;
             _StoreRepository = storeRepository;
             _BtcPayNetworkProvider = btcPayNetworkProvider;
         }
@@ -26,21 +24,20 @@ namespace BTCPayServer.Ethereum.UiUtil
 
         public IViewComponentResult Invoke()
         {
-            var ethereumSupportedPaymentMethods = StoreData.GetSupportedPaymentMethods(_BtcPayNetworkProvider).OfType<EthereumSupportedPaymentMethod>();
+            System.Collections.Generic.IEnumerable<EthereumSupportedPaymentMethod> ethereumSupportedPaymentMethods = StoreData.GetSupportedPaymentMethods(_BtcPayNetworkProvider).OfType<EthereumSupportedPaymentMethod>();
 
-            var excludeFilters = StoreData.GetStoreBlob().GetExcludedPaymentMethods();
+            IPaymentFilter excludeFilters = StoreData.GetStoreBlob().GetExcludedPaymentMethods();
 
-            var ethCryptoCodes = _ethereumOptions.EthereumConfigs.Select(t => t.CryptoCode);
+            System.Collections.Generic.IEnumerable<string> ethCryptoCodes = _BtcPayNetworkProvider.GetEthNetworks().Select(t => t.CryptoCode);
 
             return View(new EthStoreViewModel()
             {
                 EthPaymentMethodViewModels = ethCryptoCodes.Select(cryptoCode =>
-                FillEthPaymentMethodViewModel(ethereumSupportedPaymentMethods.SingleOrDefault(t => t.CryptoCode.Equals(cryptoCode)), cryptoCode, excludeFilters))
+                FillEthPaymentMethodViewModel(ethereumSupportedPaymentMethods.SingleOrDefault(t => t.CryptoCode.Equals(cryptoCode, StringComparison.InvariantCulture)), cryptoCode, excludeFilters))
             });
         }
 
-
-        EthPaymentMethodViewModel FillEthPaymentMethodViewModel(EthereumSupportedPaymentMethod ethereumSupportedPaymentMethod, string cryptoCode, IPaymentFilter excludeFilters)
+        private EthPaymentMethodViewModel FillEthPaymentMethodViewModel(EthereumSupportedPaymentMethod ethereumSupportedPaymentMethod, string cryptoCode, IPaymentFilter excludeFilters)
         {
             return new EthPaymentMethodViewModel()
             {

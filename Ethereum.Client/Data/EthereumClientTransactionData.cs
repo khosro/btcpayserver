@@ -1,104 +1,104 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Numerics;
-using Nethereum.Web3;
-using Transaction = Nethereum.RPC.Eth.DTOs.Transaction;
+﻿//using System;
+//using System.ComponentModel.DataAnnotations.Schema;
+//using System.Numerics;
+//using Nethereum.Web3;
+//using Transaction = Nethereum.RPC.Eth.DTOs.Transaction;
 
-namespace BTCPayServer.Ethereum.Client
-{
-    public class EthereumClientTransactionData
-    {
-        public string Id { get; set; }
+//namespace BTCPayServer.Ethereum.Client
+//{
+//    public class EthereumClientTransactionData
+//    {
+//        public string Id { get; set; }
 
-        public string TransactionHash { get; set; }
-        public string BlockHash { get; set; }
-        public string From { get; set; }
-        public string To { get; set; }
-        public decimal Amount { get; set; }
-        public string Input { get; set; }
+//        public string TransactionHash { get; set; }
+//        public string BlockHash { get; set; }
+//        public string From { get; set; }
+//        public string To { get; set; }
+//        public decimal Amount { get; set; }
+//        public string Input { get; set; }
 
-        public string Nonce { get; set; }//ulong
-        public string BlockNumber { get; set; }//ulong
-        public string TransactionIndex { get; set; }//ulong
-        public string Gas { get; set; }//BigInteger
-        public string GasPrice { get; set; }//BigInteger
+//        public string Nonce { get; set; }//ulong
+//        public string BlockNumber { get; set; }//ulong
+//        public string TransactionIndex { get; set; }//ulong
+//        public string Gas { get; set; }//BigInteger
+//        public string GasPrice { get; set; }//BigInteger
 
-        public DateTime CreatedDateTime { get; set; }
+//        public DateTime CreatedDateTime { get; set; }
 
 
-        [NotMapped]
-        public ulong NonceValue
-        {
-            get
-            {
-                return ulong.Parse(Nonce);
-            }
-        }
+//        [NotMapped]
+//        public ulong NonceValue
+//        {
+//            get
+//            {
+//                return ulong.Parse(Nonce);
+//            }
+//        }
 
-        [NotMapped]
-        public ulong BlockNumberValue
-        {
-            get
-            {
-                return ulong.Parse(Nonce);
-            }
-        }
+//        [NotMapped]
+//        public ulong BlockNumberValue
+//        {
+//            get
+//            {
+//                return ulong.Parse(Nonce);
+//            }
+//        }
 
-        [NotMapped]
-        public ulong TransactionIndexValue
-        {
-            get
-            {
-                return ulong.Parse(Nonce);
-            }
-        }
+//        [NotMapped]
+//        public ulong TransactionIndexValue
+//        {
+//            get
+//            {
+//                return ulong.Parse(Nonce);
+//            }
+//        }
 
-        [NotMapped]
-        public BigInteger GasValue
-        {
-            get
-            {
-                return BigInteger.Parse(Gas);
-            }
-        }
+//        [NotMapped]
+//        public BigInteger GasValue
+//        {
+//            get
+//            {
+//                return BigInteger.Parse(Gas);
+//            }
+//        }
 
-        [NotMapped]
-        public BigInteger GasPriceValue
-        {
-            get
-            {
-                return BigInteger.Parse(GasPrice);
-            }
-        }
+//        [NotMapped]
+//        public BigInteger GasPriceValue
+//        {
+//            get
+//            {
+//                return BigInteger.Parse(GasPrice);
+//            }
+//        }
 
-        public void Init(Transaction transaction)
-        {
-            TransactionHash = transaction.TransactionHash;
+//        public void Init(Transaction transaction)
+//        {
+//            TransactionHash = transaction.TransactionHash;
 
-            BlockNumber = transaction.BlockNumber.Value.ToString();
+//            BlockNumber = transaction.BlockNumber.Value.ToString();
 
-            BlockHash = transaction.BlockHash;
+//            BlockHash = transaction.BlockHash;
 
-            Nonce = transaction.Nonce.Value.ToString();
+//            Nonce = transaction.Nonce.Value.ToString();
 
-            From = transaction.From;
+//            From = transaction.From;
 
-            To = transaction.To;
+//            To = transaction.To;
 
-            Gas = transaction.Gas.ToString();
+//            Gas = transaction.Gas.ToString();
 
-            GasPrice = transaction.GasPrice.ToString();
+//            GasPrice = transaction.GasPrice.ToString();
 
-            Input = transaction.Input;
+//            Input = transaction.Input;
 
-            TransactionIndex = transaction.TransactionIndex.Value.ToString();
+//            TransactionIndex = transaction.TransactionIndex.Value.ToString();
 
-            CreatedDateTime = DateTime.UtcNow;
+//            CreatedDateTime = DateTime.UtcNow;
 
-            if (transaction.Value != null)
-            {
-                Amount = Web3.Convert.FromWei(transaction.Value.Value);
-            }
-        }
-    }
-}
+//            if (transaction.Value != null)
+//            {
+//                Amount = Web3.Convert.FromWei(transaction.Value.Value);
+//            }
+//        }
+//    }
+//}

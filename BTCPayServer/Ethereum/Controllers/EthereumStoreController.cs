@@ -1,7 +1,7 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using BTCPayServer.Data;
-using BTCPayServer.Ethereum.Config;
 using BTCPayServer.Ethereum.Payments;
 using BTCPayServer.Ethereum.ViewModels;
 using BTCPayServer.Payments;
@@ -20,14 +20,13 @@ namespace BTCPayServer.Controllers
         public IActionResult GetEthPaymentMethod(string cryptoCode, string statusMessage = null)
         {
             BTCPayNetworkProvider _BtcPayNetworkProvider = (BTCPayNetworkProvider)_ServiceProvider.GetService(typeof(BTCPayNetworkProvider));
-            EthereumOptions _ethereumOptions = (EthereumOptions)_ServiceProvider.GetService(typeof(EthereumOptions));
-
+            System.Collections.Generic.IEnumerable<string> cryptoCodes = _BtcPayNetworkProvider.GetEthCryptoCodes();
             cryptoCode = cryptoCode.ToUpperInvariant();
             EthereumSupportedPaymentMethod ethereumSupportedPaymentMethods = StoreData.GetSupportedPaymentMethods(_BtcPayNetworkProvider).OfType<EthereumSupportedPaymentMethod>().SingleOrDefault(t => t.CryptoCode.ToUpperInvariant().Equals(cryptoCode));
 
-            var excludeFilters = StoreData.GetStoreBlob().GetExcludedPaymentMethods();
+            IPaymentFilter excludeFilters = StoreData.GetStoreBlob().GetExcludedPaymentMethods();
 
-            if (!_ethereumOptions.EthereumConfigs.Any(t => !t.Equals(cryptoCode)))
+            if (!cryptoCodes.Any(t => !t.Equals(cryptoCode, StringComparison.InvariantCulture)))
             {
                 return NotFound();
             }
@@ -54,8 +53,8 @@ namespace BTCPayServer.Controllers
                 vm.Mnemonic = viewModel.Mnemonic;
                 return View(vm);
             }
-            var storeData = StoreData;
-            var blob = storeData.GetStoreBlob();
+            StoreData storeData = StoreData;
+            StoreBlob blob = storeData.GetStoreBlob();
 
             StoreData.SetSupportedPaymentMethod(new EthereumSupportedPaymentMethod() { CryptoCode = cryptoCode, Mnemonic = viewModel.Mnemonic });
 
