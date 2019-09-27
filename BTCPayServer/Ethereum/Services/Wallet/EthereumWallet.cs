@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using BTCPayServer.Ethereum.Model;
-using BTCPayServer.Ethereum.Payments;
 using EthereumXplorer.Client;
 using EthereumXplorer.Client.Models;
-using EthereumXplorer.Models;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace BTCPayServer.Ethereum.Services.Wallet

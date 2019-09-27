@@ -1,6 +1,0 @@
-﻿Add-Migration EthereumClientInitial -Context EthereumClientApplicationDbContext -OutputDir Data\Migrations
-
-
- create database ethbtcpay;
- create user btcpay with encrypted password 'urpassword';
- grant all privileges on database ethbtcpay to btcpay;

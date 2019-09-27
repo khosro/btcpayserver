@@ -17,18 +17,12 @@ namespace BTCPayServer
 
         public static IServiceCollection AddEthereumLike(this IServiceCollection services)
         {
-            //services.AddSingleton(s => s.ConfigureEthereumConfiguration());
-            //services.AddSingleton<IHostedService, EthereumListener>();
             services.TryAddSingleton<EthereumExplorerClientProvider>();
             services.TryAddSingleton<EthereumWalletProvider>();
             services.TryAddSingleton<EthereumDashboard>();
             services.TryAddSingleton<EthereumUiUtilService>();
-            services.AddSingleton<IHostedService, EthereumWaiters>();
-            services.AddSingleton<IHostedService, EthereumListener>();
-
-            //Database(services);
-
-            //services.AddStartupTask<EthereumDataMigrationStartupTask>();
+            services.AddSingleton<IHostedService, EthereumXplorerWaiters>();
+            services.AddSingleton<IHostedService, EthereumXplorerListener>();
 
             return services;
         }

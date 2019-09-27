@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
 using BTCPayServer.Ethereum.Events;
@@ -17,11 +16,12 @@ using EthereumXplorer.Client;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
+using NBXplorer;
 using NBXplorer.Models;
 
 namespace BTCPayServer.Ethereum.HostedServices
 {
-    public class EthereumListener : IHostedService
+    public class EthereumXplorerListener : IHostedService
     {
         private EventAggregator _Aggregator;
         private EthereumExplorerClientProvider _ExplorerClients;
@@ -31,7 +31,7 @@ namespace BTCPayServer.Ethereum.HostedServices
         private CancellationTokenSource _Cts;
         private EthereumWalletProvider _Wallets;
 
-        public EthereumListener(EthereumExplorerClientProvider explorerClients,
+        public EthereumXplorerListener(EthereumExplorerClientProvider explorerClients,
                                 EthereumWalletProvider wallets,
                                 InvoiceRepository invoiceRepository,
                                 EventAggregator aggregator,

@@ -26,7 +26,7 @@ namespace BTCPayServer.Controllers
 
             IPaymentFilter excludeFilters = StoreData.GetStoreBlob().GetExcludedPaymentMethods();
 
-            if (!cryptoCodes.Any(t => !t.Equals(cryptoCode, StringComparison.InvariantCulture)))
+            if (cryptoCodes.All(t => !t.Equals(cryptoCode, StringComparison.InvariantCulture)))
             {
                 return NotFound();
             }

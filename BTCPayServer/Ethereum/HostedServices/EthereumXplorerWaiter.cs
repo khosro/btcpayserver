@@ -61,14 +61,14 @@ namespace BTCPayServer.HostedServices
         }
     }
 
-    public class EthereumWaiters : IHostedService
+    public class EthereumXplorerWaiters : IHostedService
     {
-        private List<EthereumWaiter> _Waiters = new List<EthereumWaiter>();
-        public EthereumWaiters(EthereumDashboard dashboard, EthereumExplorerClientProvider clientProvider, EventAggregator eventAggregator)
+        private List<EthereumXplorerWaiter> _Waiters = new List<EthereumXplorerWaiter>();
+        public EthereumXplorerWaiters(EthereumDashboard dashboard, EthereumExplorerClientProvider clientProvider, EventAggregator eventAggregator)
         {
             foreach ((EthereumLikecBtcPayNetwork, EthereumExplorerClient) client in clientProvider.GetAll())
             {
-                _Waiters.Add(new EthereumWaiter(dashboard, client.Item1, client.Item2, eventAggregator));
+                _Waiters.Add(new EthereumXplorerWaiter(dashboard, client.Item1, client.Item2, eventAggregator));
             }
         }
         public Task StartAsync(CancellationToken cancellationToken)
@@ -82,10 +82,10 @@ namespace BTCPayServer.HostedServices
         }
     }
 
-    public class EthereumWaiter : IHostedService
+    public class EthereumXplorerWaiter : IHostedService
     {
 
-        public EthereumWaiter(EthereumDashboard dashboard, EthereumLikecBtcPayNetwork network, EthereumExplorerClient client, EventAggregator aggregator)
+        public EthereumXplorerWaiter(EthereumDashboard dashboard, EthereumLikecBtcPayNetwork network, EthereumExplorerClient client, EventAggregator aggregator)
         {
             _Network = network;
             _Client = client;
