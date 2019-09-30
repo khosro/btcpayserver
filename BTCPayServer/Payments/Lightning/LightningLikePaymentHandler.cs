@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,11 +10,10 @@ using BTCPayServer.Lightning;
 using BTCPayServer.Models;
 using BTCPayServer.Models.InvoicingModels;
 using BTCPayServer.Rating;
-using BTCPayServer.Services.Invoices;
 using BTCPayServer.Services;
+using BTCPayServer.Services.Invoices;
 using BTCPayServer.Services.Rates;
 using NBitcoin;
-using System.Globalization;
 
 namespace BTCPayServer.Payments.Lightning
 {
@@ -45,10 +45,10 @@ namespace BTCPayServer.Payments.Lightning
         {
             //direct casting to (BTCPayNetwork) is fixed in other pull requests with better generic interfacing for handlers
             var storeBlob = store.GetStoreBlob();
-            var test = GetNodeInfo(paymentMethod.PreferOnion, supportedPaymentMethod, (BTCPayNetwork)network);
+            var test = GetNodeInfo(paymentMethod.PreferOnion, supportedPaymentMethod, network);
             var invoice = paymentMethod.ParentEntity;
             var due = Extensions.RoundUp(invoice.ProductInformation.Price / paymentMethod.Rate, 8);
-            var client = _lightningClientFactory.Create(supportedPaymentMethod.GetLightningUrl(), (BTCPayNetwork)network);
+            var client = _lightningClientFactory.Create(supportedPaymentMethod.GetLightningUrl(), network);
             var expiry = invoice.ExpirationTime - DateTimeOffset.UtcNow;
             if (expiry < TimeSpan.Zero)
                 expiry = TimeSpan.FromSeconds(1);
@@ -67,7 +67,7 @@ namespace BTCPayServer.Payments.Lightning
                 }
                 catch (OperationCanceledException) when (cts.IsCancellationRequested)
                 {
-                    throw new PaymentMethodUnavailableException($"The lightning node did not reply in a timely maner");
+                    throw new PaymentMethodUnavailableException($"The lightning node did not reply in a timely manner");
                 }
                 catch (Exception ex)
                 {
@@ -139,11 +139,17 @@ namespace BTCPayServer.Payments.Lightning
 
         public override IEnumerable<PaymentMethodId> GetSupportedPaymentMethods()
         {
-            return _networkProvider.GetAll().OfType<BTCPayNetwork>()/*Some Network such as Ethereum is BTCPayNetworkBase and we want to exclude them here*/
+            /* return _networkProvider.GetAll().OfType<BTCPayNetwork>()/*Some Network such as Ethereum is BTCPayNetworkBase and we want to exclude them here
                             .Select(network => new PaymentMethodId(network.CryptoCode, PaymentTypes.LightningLike));
+                            */
+            return _networkProvider
+                .GetAll()
+                .OfType<BTCPayNetwork>()
+                .Where(network => network.NBitcoinNetwork.Consensus.SupportSegwit)
+                .Select(network => new PaymentMethodId(network.CryptoCode, PaymentTypes.LightningLike));
         }
-        
-        
+
+
         public override async Task<string> IsPaymentMethodAllowedBasedOnInvoiceAmount(StoreBlob storeBlob,
             Dictionary<CurrencyPair, Task<RateResult>> rate, Money amount, PaymentMethodId paymentMethodId)
         {
@@ -167,7 +173,7 @@ namespace BTCPayServer.Payments.Lightning
             StoreBlob storeBlob)
         {
             var paymentMethodId = new PaymentMethodId(model.CryptoCode, PaymentTypes.LightningLike);
-            
+
             var cryptoInfo = invoiceResponse.CryptoInfo.First(o => o.GetpaymentMethodId() == paymentMethodId);
             var network = _networkProvider.GetNetwork<BTCPayNetwork>(model.CryptoCode);
             model.IsLightning = true;
@@ -175,11 +181,11 @@ namespace BTCPayServer.Payments.Lightning
             model.InvoiceBitcoinUrl = cryptoInfo.PaymentUrls.BOLT11;
             model.InvoiceBitcoinUrlQR = cryptoInfo.PaymentUrls.BOLT11.ToUpperInvariant();
             model.LightningAmountInSatoshi = storeBlob.LightningAmountInSatoshi;
-            if (storeBlob.LightningAmountInSatoshi && model.CryptoCode == "BTC" )
+            if (storeBlob.LightningAmountInSatoshi && model.CryptoCode == "BTC")
             {
                 model.CryptoCode = "Sats";
                 model.BtcDue = Money.Parse(model.BtcDue).ToUnit(MoneyUnit.Satoshi).ToString(CultureInfo.InvariantCulture);
-                model.BtcPaid =  Money.Parse(model.BtcPaid).ToUnit(MoneyUnit.Satoshi).ToString(CultureInfo.InvariantCulture);
+                model.BtcPaid = Money.Parse(model.BtcPaid).ToUnit(MoneyUnit.Satoshi).ToString(CultureInfo.InvariantCulture);
                 model.NetworkFee = new Money(model.NetworkFee, MoneyUnit.BTC).ToUnit(MoneyUnit.Satoshi);
                 model.OrderAmount = Money.Parse(model.OrderAmount).ToUnit(MoneyUnit.Satoshi).ToString(CultureInfo.InvariantCulture);
             }
@@ -189,7 +195,7 @@ namespace BTCPayServer.Payments.Lightning
             var network = _networkProvider.GetNetwork<BTCPayNetwork>(paymentMethodId.CryptoCode);
             return GetCryptoImage(network);
         }
-        
+
         private string GetCryptoImage(BTCPayNetworkBase network)
         {
             return ((BTCPayNetwork)network).LightningImagePath;
@@ -199,7 +205,7 @@ namespace BTCPayServer.Payments.Lightning
             var network = _networkProvider.GetNetwork<BTCPayNetwork>(paymentMethodId.CryptoCode);
             return GetPaymentMethodName(network);
         }
-        
+
         private string GetPaymentMethodName(BTCPayNetworkBase network)
         {
             return $"{network.DisplayName} (Lightning)";

@@ -86,7 +86,11 @@ namespace BTCPayServer.Payments.Bitcoin
 
         public override IEnumerable<PaymentMethodId> GetSupportedPaymentMethods()
         {
+            /* It was Ethereum Network
             return _networkProvider.GetAll().OfType<BTCPayNetwork>()/*Some Network such as Ethereum is BTCPayNetworkBase and we want to exclude them here*/
+            return _networkProvider
+                .GetAll()
+                .OfType<BTCPayNetwork>()
                 .Select(network => new PaymentMethodId(network.CryptoCode, PaymentTypes.BTCLike));
         }
 

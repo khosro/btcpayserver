@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BTCPayServer.Ethereum.Payments;
+using BTCPayServer.Altcoins.Monero.Payments;
 using BTCPayServer.Services.Invoices;
 using Newtonsoft.Json.Linq;
 
@@ -38,6 +39,9 @@ namespace BTCPayServer.Payments
                     break;
                 case "ethlike":
                     type = EthLike;
+                    break;
+                case "monerolike":
+                    type = MoneroPaymentType.Instance;
                     break;
                 default:
                     type = null;
