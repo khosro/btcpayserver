@@ -91,7 +91,7 @@ namespace BTCPayServer.Hosting
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
                 options.Lockout.MaxFailedAccessAttempts = 5;
                 options.Lockout.AllowedForNewUsers = true;
-                options.Password.RequireUppercase = false;            
+                options.Password.RequireUppercase = false;
                 // Configure Identity to use the same JWT claims as OpenIddict instead
                 // of the legacy WS-Federation claims it uses by default (ClaimTypes),
                 // which saves you from doing the mapping in your authorization controller.
@@ -200,6 +200,8 @@ namespace BTCPayServer.Hosting
                     options.AddEventHandler<LogoutEventHandler>();
 
                     options.ConfigureSigningKey(Configuration);
+                    options.SetAccessTokenLifetime(OpenIdExtensions.AccessTokenLifetime);
+                    options.SetRefreshTokenLifetime(OpenIdExtensions.RefreshTokenLifetime);
                 });
         }
 

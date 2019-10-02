@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
 using BTCPayServer.Data;
-using BTCPayServer.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using OpenIddict.Abstractions;
@@ -17,6 +16,9 @@ namespace BTCPayServer.Authentication.OpenId
 {
     public static class OpenIdExtensions
     {
+        public  static TimeSpan AccessTokenLifetime = TimeSpan.FromSeconds(60);
+        public  static TimeSpan RefreshTokenLifetime = TimeSpan.FromHours(300);
+
         public static async Task<AuthenticationTicket> CreateAuthenticationTicket(
             OpenIddictApplicationManager<BTCPayOpenIdClient> applicationManager,
             OpenIddictAuthorizationManager<BTCPayOpenIdAuthorization> authorizationManager,

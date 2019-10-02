@@ -52,6 +52,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
+using BTCPayServer.Authentication.OpenId;
 
 namespace BTCPayServer.Hosting
 {
@@ -275,6 +276,7 @@ namespace BTCPayServer.Hosting
                     options.TokenValidationParameters.ValidateAudience = false;
                     //we do not validate the issuer directly because btcpay can be accessed through multiple urls that we cannot predetermine
                     options.TokenValidationParameters.ValidateIssuer = false;
+                    options.TokenValidationParameters.ClockSkew = OpenIdExtensions.AccessTokenLifetime;
                     options.TokenValidationParameters.IssuerSigningKey =
                         OpenIddictExtensions.GetSigningKey(configuration);
                     options.IncludeErrorDetails = true;
