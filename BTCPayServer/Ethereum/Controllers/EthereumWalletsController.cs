@@ -114,6 +114,7 @@ namespace BTCPayServer.Controllers
             StoreBlob storeData = store.GetStoreBlob();
 
             EthereumWallet wallet = _ethereumWalletProvider.GetWallet(paymentMethod.Network);
+
             return View(await FillModel(wallet, paymentMethod));
         }
 
