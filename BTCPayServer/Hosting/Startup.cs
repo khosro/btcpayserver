@@ -1,4 +1,11 @@
 ﻿using Microsoft.AspNetCore.Hosting;
+#if NETCOREAPP21
+using IWebHostEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
+using AspNet.Security.OpenIdConnect.Primitives;
+#else
+using Microsoft.Extensions.Hosting;
+using OpenIdConnectConstants = OpenIddict.Abstractions.OpenIddictConstants;
+#endif
 using Microsoft.AspNetCore.Builder;
 using System;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,7 +20,6 @@ using Microsoft.Extensions.Configuration;
 using BTCPayServer.Configuration;
 using System.IO;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using AspNet.Security.OpenIdConnect.Primitives;
 using BTCPayServer.Security;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using OpenIddict.Abstractions;
@@ -21,7 +27,6 @@ using OpenIddict.EntityFrameworkCore.Models;
 using System.Net;
 using BTCPayServer.Authentication;
 using BTCPayServer.Authentication.OpenId;
-using BTCPayServer.Altcoins.Monero;
 using BTCPayServer.PaymentRequest;
 using BTCPayServer.Services.Apps;
 using BTCPayServer.Storage;
@@ -32,13 +37,13 @@ namespace BTCPayServer.Hosting
 {
     public class Startup
     {
-        public Startup(IConfiguration conf, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public Startup(IConfiguration conf, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
             Configuration = conf;
             _Env = env;
             LoggerFactory = loggerFactory;
         }
-        IHostingEnvironment _Env;
+        IWebHostEnvironment _Env;
         public IConfiguration Configuration
         {
             get; set;
@@ -50,10 +55,6 @@ namespace BTCPayServer.Hosting
             Logs.Configure(LoggerFactory);
             services.ConfigureBTCPayServer(Configuration);
             services.AddEthereumLike();
-            if (Configuration.AnyMoneroLikeCoinsConfigured())
-            {
-                services.AddMoneroLike();
-            }
             services.AddMemoryCache();
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -79,7 +80,11 @@ namespace BTCPayServer.Hosting
                 //    StyleSrc = "'self' 'unsafe-inline'",
                 //    ScriptSrc = "'self' 'unsafe-inline'"
                 //});
-            }).AddControllersAsServices();
+            })
+#if !NETCOREAPP21
+            .AddNewtonsoftJson()
+#endif
+            .AddControllersAsServices();
             services.TryAddScoped<ContentSecurityPolicies>();
             services.Configure<IdentityOptions>(options =>
             {
@@ -155,6 +160,7 @@ namespace BTCPayServer.Hosting
                 })
                 .AddServer(options =>
                 {
+#if NETCOREAPP21
                     options.EnableRequestCaching();
                     //Disabled so that Tor works with OpenIddict too
                     options.DisableHttpsRequirement();
@@ -162,11 +168,26 @@ namespace BTCPayServer.Hosting
                     // Note: if you don't call this method, you won't be able to
                     // bind OpenIdConnectRequest or OpenIdConnectResponse parameters.
                     options.UseMvc();
+#else
+                    options.UseAspNetCore()
+                        .EnableStatusCodePagesIntegration()
+                        .EnableAuthorizationEndpointPassthrough()
+                        .EnableLogoutEndpointPassthrough()
+                        .EnableTokenEndpointPassthrough()
+                        .EnableRequestCaching()
+                        .DisableTransportSecurityRequirement();
+#endif
 
                     // Enable the token endpoint (required to use the password flow).
+#if NETCOREAPP21
                     options.EnableTokenEndpoint("/connect/token");
                     options.EnableAuthorizationEndpoint("/connect/authorize");
                     options.EnableLogoutEndpoint("/connect/logout");
+#else
+                    options.SetTokenEndpointUris("/connect/token");
+                    options.SetAuthorizationEndpointUris("/connect/authorize");
+                    options.SetLogoutEndpointUris("/connect/logout");
+#endif
 
                     //we do not care about these granular controls for now
                     options.IgnoreScopePermissions();
@@ -192,7 +213,7 @@ namespace BTCPayServer.Hosting
                         RestAPIPolicies.BTCPayScopes.ViewApps,
                         RestAPIPolicies.BTCPayScopes.AppManagement
                         );
-                    
+
                     options.AddEventHandler<PasswordGrantTypeEventHandler>();
                     options.AddEventHandler<AuthorizationCodeGrantTypeEventHandler>();
                     options.AddEventHandler<RefreshTokenGrantTypeEventHandler>();
@@ -207,7 +228,7 @@ namespace BTCPayServer.Hosting
 
         public void Configure(
             IApplicationBuilder app,
-            IHostingEnvironment env,
+            IWebHostEnvironment env,
             IServiceProvider prov,
             BTCPayServerOptions options,
             ILoggerFactory loggerFactory)
@@ -226,15 +247,12 @@ namespace BTCPayServer.Hosting
             }
         }
 
-        private static void ConfigureCore(IApplicationBuilder app, IHostingEnvironment env, IServiceProvider prov, ILoggerFactory loggerFactory, BTCPayServerOptions options)
+        private static void ConfigureCore(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider prov, ILoggerFactory loggerFactory, BTCPayServerOptions options)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
-            
-            app.UseCors();
-
             var forwardingOptions = new ForwardedHeadersOptions()
             {
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
@@ -243,25 +261,47 @@ namespace BTCPayServer.Hosting
             forwardingOptions.KnownProxies.Clear();
             forwardingOptions.ForwardedHeaders = ForwardedHeaders.All;
             app.UseForwardedHeaders(forwardingOptions);
-            app.UseCors();
+#if !NETCOREAPP21
             app.UsePayServer();
+            app.UseRouting();
+#endif
+            app.UseCors();
+#if NETCOREAPP21
+            app.UsePayServer();
+#endif
+
             app.UseStaticFiles();
             app.UseProviderStorage(options);
             app.UseAuthentication();
+#if !NETCOREAPP21
+            app.UseAuthorization();
+#endif
             app.UseSession();
+#if NETCOREAPP21
             app.UseSignalR(route =>
             {
                 AppHub.Register(route);
                 PaymentRequestHub.Register(route);
             });
+#endif
             app.UseWebSockets();
             app.UseStatusCodePages();
+#if NETCOREAPP21
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
+#else
+            app.UseEndpoints(endpoints =>
+            {
+                AppHub.Register(endpoints);
+                PaymentRequestHub.Register(endpoints);
+                endpoints.MapControllers();
+                endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
+            });
+#endif
         }
     }
 }

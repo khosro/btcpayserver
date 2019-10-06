@@ -13,7 +13,6 @@ using BTCPayServer.Tests.Logging;
 using BTCPayServer.Tests.Mocks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Routing;
@@ -33,7 +32,11 @@ using System.Security.Claims;
 using System.Security.Principal;
 using System.Text;
 using System.Threading;
+#if NETCOREAPP21
 using AspNet.Security.OpenIdConnect.Primitives;
+#else
+using OpenIdConnectConstants = OpenIddict.Abstractions.OpenIddictConstants;
+#endif
 using Xunit;
 using BTCPayServer.Services;
 using System.Net.Http;
