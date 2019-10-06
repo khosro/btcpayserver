@@ -32,7 +32,7 @@ namespace BTCPayServer.Controllers
                                        CurrencyNameTable currencyTable,
                                        BTCPayNetworkProvider networkProvider,
                                        UserManager<ApplicationUser> userManager,
-                                       IOptions<MvcJsonOptions> mvcJsonOptions,
+                                       MvcNewtonsoftJsonOptions mvcJsonOptions,
                                        NBXplorerDashboard dashboard,
                                        RateFetcher rateProvider,
                                        ExplorerClientProvider explorerProvider,

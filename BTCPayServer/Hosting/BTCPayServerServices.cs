@@ -1,4 +1,5 @@
 ﻿using BTCPayServer.Configuration;
+using BTCPayServer.Services.Altcoins.Monero;
 using Microsoft.Extensions.Logging;
 using System;
 using System.IdentityModel.Tokens.Jwt;
@@ -39,7 +40,7 @@ using NBXplorer.DerivationStrategy;
 using NicolasDorier.RateLimits;
 using Npgsql;
 using BTCPayServer.Services.Apps;
-using BTCPayServer.Services.U2F;
+using BTCPayServer.U2F;
 using BundlerMinifier.TagHelpers;
 using OpenIddict.EntityFrameworkCore.Models;
 
@@ -59,6 +60,11 @@ namespace BTCPayServer.Hosting
     {
         public static IServiceCollection AddBTCPayServer(this IServiceCollection services, IConfiguration configuration)
         {
+#if NETCOREAPP21
+            services.AddSingleton<MvcNewtonsoftJsonOptions>();
+#else
+			services.AddSingleton<MvcNewtonsoftJsonOptions>(o =>  o.GetRequiredService<IOptions<MvcNewtonsoftJsonOptions>>().Value);
+#endif
             services.AddDbContext<ApplicationDbContext>((provider, o) =>
             {
                 var factory = provider.GetRequiredService<ApplicationDbContextFactory>();
@@ -70,6 +76,7 @@ namespace BTCPayServer.Hosting
             {
                 httpClient.Timeout = Timeout.InfiniteTimeSpan;
             });
+            services.AddMoneroLike();
             services.TryAddSingleton<SettingsRepository>();
             services.TryAddSingleton<TorServices>();
             services.TryAddSingleton<SocketFactory>();
@@ -326,6 +333,4 @@ namespace BTCPayServer.Hosting
             return app; 
         }
     }
-
-
 }

@@ -17,7 +17,6 @@ using BTCPayServer.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using BTCPayServer.Authentication;
 using System.Diagnostics;
-using Microsoft.EntityFrameworkCore.Extensions;
 using BTCPayServer.Data;
 using Microsoft.EntityFrameworkCore;
 using BTCPayServer.Services.Rates;
@@ -57,11 +56,10 @@ using System.Security;
 using System.Runtime.CompilerServices;
 using System.Net;
 using BTCPayServer.Models.AccountViewModels;
-using BTCPayServer.Services.U2F.Models;
-using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using NBXplorer.DerivationStrategy;
+using BTCPayServer.U2F.Models;
 
 namespace BTCPayServer.Tests
 {
@@ -3039,7 +3037,8 @@ noninventoryitem:
         private static bool IsMapped(Invoice invoice, ApplicationDbContext ctx)
         {
             var h = BitcoinAddress.Create(invoice.BitcoinAddress, Network.RegTest).ScriptPubKey.Hash.ToString();
-            return ctx.AddressInvoices.FirstOrDefault(i => i.InvoiceDataId == invoice.Id && i.GetAddress() == h) != null;
+            return (ctx.AddressInvoices.Where(i => i.InvoiceDataId == invoice.Id).ToArrayAsync().GetAwaiter().GetResult())
+                .Where(i => i.GetAddress() == h).Any();
         }
     }
 }
