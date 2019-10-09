@@ -40,6 +40,7 @@
     <PackageReference Include="BundlerMinifier.TagHelpers" Version="3.0.415" />
     <PackageReference Include="HtmlSanitizer" Version="4.0.217" />
     <PackageReference Include="LedgerWallet" Version="2.0.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.1.2" />
     <PackageReference Include="Microsoft.Extensions.Logging.Filter" Version="1.1.2" />
     <PackageReference Include="Microsoft.NetCore.Analyzers" Version="2.6.2">
       <PrivateAssets>all</PrivateAssets>
