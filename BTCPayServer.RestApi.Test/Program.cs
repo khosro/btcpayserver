@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,19 +17,57 @@ namespace BTCPayServer.RestApi.Test
     {
 
         //static string baseurl = "http://localhost:5000";
-        static string baseurl = "http://192.168.41.93:5000";
-        //static string clientId = "c5e59a05-c3aa-413e-a57d-4756582b59eb";
-        static string clientId = "ee3134a1-b3c8-4adf-8776-cd5173d28a4e";
+        static string baseurl = "https://192.168.41.93";
+
+        //static string clientId = "ee3134a1-b3c8-4adf-8776-cd5173d28a4e";//My computer
+        static string clientId = "864e4d8d-c3eb-4ac6-a225-e09862ca94c7";//Test Server
+
         static string client_secret = "secret";
-        //  const string email = "a@a.com", password = "123456";
+
         static string token = "";
         static string refresh_token = "";
-        static HttpClient client = new HttpClient();
+        static HttpClient client;
         static HttpStatusCode StatusCode;
         public static void Main(string[] args) => MainAsync(args).GetAwaiter().GetResult();
 
+
+        static HttpClient GetHttpClient()
+        {
+            var handler = new HttpClientHandler();
+            handler.ClientCertificateOptions = ClientCertificateOption.Manual;
+            handler.ServerCertificateCustomValidationCallback =
+                (httpRequestMessage, cert, cetChain, policyErrors) =>
+                {
+                    return true;
+                };
+
+            var client = new HttpClient(handler);
+
+            return client;
+        }
+
+        static void NEVER_EAT_POISON_Disable_CertificateValidation()
+        {
+            // Disabling certificate validation can expose you to a man-in-the-middle attack
+            // which may allow your encrypted message to be read by an attacker
+            // https://stackoverflow.com/a/14907718/740639
+            ServicePointManager.ServerCertificateValidationCallback =
+                delegate (
+                    object s,
+                    X509Certificate certificate,
+                    X509Chain chain,
+                    SslPolicyErrors sslPolicyErrors
+                )
+                {
+                    return true;
+                };
+        }
+
+
         public static async Task MainAsync(string[] args)
         {
+
+            client = GetHttpClient();
             //try
             //{
             //    await GetResourceAsync();
@@ -36,7 +76,11 @@ namespace BTCPayServer.RestApi.Test
             //{
             //    Log(ex.Message);
             //}
-            string email = Guid.NewGuid().ToString();
+
+
+            NEVER_EAT_POISON_Disable_CertificateValidation();
+
+            string email = Guid.NewGuid().ToString() + "@yahoo.com";
             //email = "test";
             string password = "1234567";
 
@@ -45,7 +89,6 @@ namespace BTCPayServer.RestApi.Test
             await GetTokenAsync(email, password);
 
             await GetResourceAsync();
-
 
             await RefreshTokenAsync();//This is for test remove it.
 
@@ -120,6 +163,9 @@ namespace BTCPayServer.RestApi.Test
             {
                 Content = new StringContent(JsonConvert.SerializeObject(new { email = email, password = password }), Encoding.UTF8, "application/json")
             };
+
+            ServicePointManager.ServerCertificateValidationCallback +=
+       (sender, cert, chain, sslPolicyErrors) => true;
 
             // Ignore 409 responses, as they indicate that the account already exists.
             var response = await client.SendAsync(request, HttpCompletionOption.ResponseContentRead);
