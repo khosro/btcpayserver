@@ -141,7 +141,6 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\NBXplorer\EthereumXplorer.Client\EthereumXplorer.Client.csproj" />
-	  <ProjectReference Include="..\..\NBXplorer\NBXplorer.Client\NBXplorer.Client.csproj" />
 	  <ProjectReference Include="..\BTCPayServer.Data\BTCPayServer.Data.csproj" />
 	  <ProjectReference Include="..\BTCPayServer.Rating\BTCPayServer.Rating.csproj" />
 	  <ProjectReference Include="..\BTCPayServer.Common\BTCPayServer.Common.csproj" />
