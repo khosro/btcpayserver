@@ -64,7 +64,6 @@ namespace BTCPayServer
                         Permissions = { OpenIddictConstants.Permissions.GrantTypes.Password, OpenIddictConstants.Permissions.GrantTypes.RefreshToken, OpenIddictConstants.Permissions.GrantTypes.Implicit,
                 OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode,OpenIddictConstants.Permissions.GrantTypes.ClientCredentials}
                     };
-                    //var account = _serviceProvide.GetService<AccountController>();
                     var RegisterDetails = new RegisterViewModel()
                     {
                         Email = id + "@idea.com",

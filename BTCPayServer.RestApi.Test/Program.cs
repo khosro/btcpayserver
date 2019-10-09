@@ -14,11 +14,12 @@ namespace BTCPayServer.RestApi.Test
     class Program
     {
 
-        static string baseurl = "http://localhost:5000";
+        //static string baseurl = "http://localhost:5000";
+        static string baseurl = "http://192.168.41.93:5000";
         //static string clientId = "c5e59a05-c3aa-413e-a57d-4756582b59eb";
         static string clientId = "ee3134a1-b3c8-4adf-8776-cd5173d28a4e";
         static string client_secret = "secret";
-        const string email = "a@a.com", password = "123456";
+        //  const string email = "a@a.com", password = "123456";
         static string token = "";
         static string refresh_token = "";
         static HttpClient client = new HttpClient();
@@ -27,18 +28,27 @@ namespace BTCPayServer.RestApi.Test
 
         public static async Task MainAsync(string[] args)
         {
-            try
-            {
-                await GetResourceAsync();
-            }
-            catch (Exception ex)
-            {
-                Log(ex.Message);
-            }
+            //try
+            //{
+            //    await GetResourceAsync();
+            //}
+            //catch (Exception ex)
+            //{
+            //    Log(ex.Message);
+            //}
+            string email = Guid.NewGuid().ToString();
+            //email = "test";
+            string password = "1234567";
 
-            await GetTokenAsync();
+            await CreateAccountAsync(email, password);
+
+            await GetTokenAsync(email, password);
 
             await GetResourceAsync();
+
+
+            await RefreshTokenAsync();//This is for test remove it.
+
             int elapsed = 0;
             for (int i = 0; i < 30; i++)
             {
@@ -92,7 +102,7 @@ namespace BTCPayServer.RestApi.Test
             Console.WriteLine("");
         }
 
-        static async Task GetTokenAsync()
+        static async Task GetTokenAsync(string email, string password)
         {
             var t = await GetTokenAsync(client, email, password);
             Log(t);
@@ -101,14 +111,14 @@ namespace BTCPayServer.RestApi.Test
         private static async Task GetResourceAsync()
         {
             var resource = await GetResourceAsync(client);
-            Log("API response: {0}", resource);
+            Log("GetResourceAsync API response: {0}", resource);
         }
 
-        public static async Task CreateAccountAsync(HttpClient client, string email, string password)
+        public static async Task CreateAccountAsync(string email, string password)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost:58795/Account/Register")
+            var request = new HttpRequestMessage(HttpMethod.Post, $"{baseurl}/api/authenticate/register")
             {
-                Content = new StringContent(JsonConvert.SerializeObject(new { email, password }), Encoding.UTF8, "application/json")
+                Content = new StringContent(JsonConvert.SerializeObject(new { email = email, password = password }), Encoding.UTF8, "application/json")
             };
 
             // Ignore 409 responses, as they indicate that the account already exists.
@@ -118,6 +128,9 @@ namespace BTCPayServer.RestApi.Test
                 return;
             }
             response.EnsureSuccessStatusCode();
+
+            string responsedata = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Login Response : {responsedata}");
         }
 
         public static async Task<string> GetTokenAsync(HttpClient client, string email, string password)
@@ -149,8 +162,7 @@ namespace BTCPayServer.RestApi.Test
         public static async Task<string> GetResourceAsync(HttpClient client)
         {
             string url = $"{baseurl}/api/test/me/id";
-            url = $"{baseurl}/api/test1/Testaction";
-            //url = $"{baseurl}/api/test1/Register";
+            url = $"{baseurl}/api/test1/testaction";
             var request = new HttpRequestMessage(HttpMethod.Get, url);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -166,14 +178,23 @@ namespace BTCPayServer.RestApi.Test
             Log("Get new token by refresh token");
 
             var request = new HttpRequestMessage(HttpMethod.Post, $"{baseurl}/connect/token");
-            request.Content = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>()
-            {
-               new KeyValuePair<string, string>("grant_type","refresh_token"),
-                        new KeyValuePair<string, string>("client_id", clientId),
-                        new KeyValuePair<string, string>("client_secret", client_secret),
-                        new KeyValuePair<string, string>("refresh_token", refresh_token),
-                        new KeyValuePair<string, string>("redirect_uri", "")
-            });
+            request.Content = new FormUrlEncodedContent(
+                //new List<KeyValuePair<string, string>>()
+                new Dictionary<string, string>
+                {
+                    /*
+                      new KeyValuePair<string, string>("grant_type","refresh_token"),
+                    new KeyValuePair<string, string>("client_id", clientId),
+                    new KeyValuePair<string, string>("client_secret", client_secret),
+                    new KeyValuePair<string, string>("refresh_token", refresh_token),
+                    new KeyValuePair<string, string>("redirect_uri", ""),
+                    */
+                    ["grant_type"] = "refresh_token",
+                    ["client_id"] = clientId,
+                    ["client_secret"] = client_secret,
+                    ["refresh_token"] = refresh_token,
+                    ["redirect_uri"] = "",
+                });
 
             var response = await client.SendAsync(request, HttpCompletionOption.ResponseContentRead);
             response.EnsureSuccessStatusCode();
@@ -181,6 +202,8 @@ namespace BTCPayServer.RestApi.Test
             var payload = JObject.Parse(await response.Content.ReadAsStringAsync());
             token = (string)payload["access_token"];
             var refresh_tokenNew = (string)payload["refresh_token"];
+
+            Log($"RefreshTokenAsync  {payload.ToString()}");
 
             if (refresh_tokenNew.Equals(refresh_token))
             {

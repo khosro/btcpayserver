@@ -26,7 +26,7 @@ namespace BTCPayServer.Controllers.RestApi
             this._serviceProvider = serviceProvider;
         }
 
-        [HttpGet("Testaction")]
+        [HttpGet("testaction")]
         public string GetCurrentUserId()
         {
             return "Test";
