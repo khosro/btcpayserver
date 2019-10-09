@@ -96,7 +96,7 @@ namespace BTCPayServer.Tests
 
         public bool MockRates { get; set; } = true;
 
-        public void Start()
+        public async Task StartAsync()
         {
             if (!Directory.Exists(_Directory))
                 Directory.CreateDirectory(_Directory);
@@ -133,7 +133,7 @@ namespace BTCPayServer.Tests
             else if (!String.IsNullOrEmpty(Postgres))
                 config.AppendLine($"postgres=" + Postgres);
             var confPath = Path.Combine(chainDirectory, "settings.config");
-            File.WriteAllText(confPath, config.ToString());
+            await File.WriteAllTextAsync(confPath, config.ToString());
 
             ServerUri = new Uri("http://" + HostName + ":" + Port + "/");
             HttpClient = new HttpClient();
@@ -143,6 +143,7 @@ namespace BTCPayServer.Tests
             _Host = new WebHostBuilder()
                     .UseConfiguration(conf)
                     .UseContentRoot(FindBTCPayServerDirectory())
+                    .UseWebRoot(Path.Combine(FindBTCPayServerDirectory(), "wwwroot"))
                     .ConfigureServices(s =>
                     {
                         s.AddLogging(l =>
@@ -157,7 +158,7 @@ namespace BTCPayServer.Tests
                     .UseKestrel()
                     .UseStartup<Startup>()
                     .Build();
-            _Host.StartWithTasksAsync().GetAwaiter().GetResult();
+            await _Host.StartWithTasksAsync();
 
             var urls = _Host.ServerFeatures.Get<IServerAddressesFeature>().Addresses;
             foreach (var url in urls)
@@ -232,7 +233,7 @@ namespace BTCPayServer.Tests
 
             
 
-            WaitSiteIsOperational().GetAwaiter().GetResult();
+            await WaitSiteIsOperational();
         }
 
         private async Task WaitSiteIsOperational()
@@ -267,7 +268,7 @@ namespace BTCPayServer.Tests
 
         private string FindBTCPayServerDirectory()
         {
-            var solutionDirectory = LanguageService.TryGetSolutionDirectoryInfo(Directory.GetCurrentDirectory());
+            var solutionDirectory = TestUtils.TryGetSolutionDirectoryInfo(Directory.GetCurrentDirectory());
             return Path.Combine(solutionDirectory.FullName, "BTCPayServer");
         }
 
