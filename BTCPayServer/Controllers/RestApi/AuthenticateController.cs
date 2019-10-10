@@ -36,8 +36,8 @@ namespace BTCPayServer.Controllers.RestApi
         {
             try
             {
-                string email = data["email"].ToObject<string>();
-                string password = data["password"].ToObject<string>();
+                string email = data["email"]?.ToObject<string>();
+                string password = data["password"]?.ToObject<string>();
                 var account = ControllersUtil.GetController<AccountController>(this.HttpContext, _serviceProvider);
                 var RegisterDetails = new RegisterViewModel()
                 {
@@ -46,54 +46,18 @@ namespace BTCPayServer.Controllers.RestApi
                     Password = password,
                 };
                 var model = await account.Register(RegisterDetails);
-                return new { Status = true, Error = string.Join(",", account.GetModelSateError()).Trim() };
+                string errors = string.Join(",", account.GetModelSateError()).Trim();
+                bool hasError = !string.IsNullOrWhiteSpace(errors);
+                if (string.IsNullOrWhiteSpace(account.RegisteredUserId) && !hasError)
+                    return new { Status = false, Error = "You can not sign in"/*Maybe policies.LockSubscription = true*/ };
+                else
+                    return new { Status = hasError ? false : true, Error = errors };
             }
             catch (Exception ex)
             {
                 //TODO.Log Error 
                 return new { Status = false, Error = "Error" };
             }
-        }
-
-        [HttpPost("connect/tokenjson")]
-        public async Task<object> Tokenjson([FromBody]JObject data)
-        {
-            /*
-             * TODO.
-             * This is bad approach.Solve it.
-             * But in order to prevent the following error, i do it.
-             * 
-             * "has been blocked by CORS policy: Response to preflight request doesn't pass access control check: 
-             * No 'Access-Control-Allow-Origin' header is present on the requested resource."
-             
-             * And also test the following but does not work(Apply CORS Globally)
-             * 
-                services.Configure<MvcOptions>(options =>
-                {
-                options.Filters.Add(new CorsAuthorizationFilterFactory("AllowMyOrigin"));
-                });
-             * 
-             */
-            HttpClient httpClient = new HttpClient();
-
-            var httpRequest = new HttpRequestMessage(HttpMethod.Post, new Uri(new Uri(this.HttpContext.Request.GetAbsoluteRootUri().ToString()), "connect/token"))
-            {
-                Content = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>()
-                    {
-                        new KeyValuePair<string, string>("grant_type", data["grant_type"]?.ToObject<string>()),
-                        new KeyValuePair<string, string>("client_id",data["client_id"]?.ToObject<string>()),
-                        new KeyValuePair<string, string>("client_secret", data["client_secret"]?.ToObject<string>()),
-                        new KeyValuePair<string, string>("refresh_token", data["refresh_token"]?.ToObject<string>()),
-                        new KeyValuePair<string, string>("redirect_uri", data["redirect_uri"]?.ToObject<string>()),
-                        new KeyValuePair<string, string>("username", data["username"]?.ToObject<string>()),
-                        new KeyValuePair<string, string>("password", data["password"]?.ToObject<string>()),
-                        new KeyValuePair<string, string>("scope", data["scope"]?.ToObject<string>()),
-                    })
-            };
-
-            var response = await httpClient.SendAsync(httpRequest);
-            string content = await response.Content.ReadAsStringAsync();
-            return content;
         }
 
         [HttpPost("connect/token")]
@@ -136,6 +100,50 @@ namespace BTCPayServer.Controllers.RestApi
             string content = await response.Content.ReadAsStringAsync();
             return content;
         }
+
+        #region Obsolete
+        [HttpPost("connect/tokenjson")]
+        [Obsolete("Use Token instead")]
+        public async Task<object> Tokenjson([FromBody]JObject data)
+        {
+            /*
+             * TODO.
+             * This is bad approach.Solve it.
+             * But in order to prevent the following error, i do it.
+             * 
+             * "has been blocked by CORS policy: Response to preflight request doesn't pass access control check: 
+             * No 'Access-Control-Allow-Origin' header is present on the requested resource."
+             
+             * And also test the following but does not work(Apply CORS Globally)
+             * 
+                services.Configure<MvcOptions>(options =>
+                {
+                options.Filters.Add(new CorsAuthorizationFilterFactory("AllowMyOrigin"));
+                });
+             * 
+             */
+            HttpClient httpClient = new HttpClient();
+
+            var httpRequest = new HttpRequestMessage(HttpMethod.Post, new Uri(new Uri(this.HttpContext.Request.GetAbsoluteRootUri().ToString()), "connect/token"))
+            {
+                Content = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>()
+                    {
+                        new KeyValuePair<string, string>("grant_type", data["grant_type"]?.ToObject<string>()),
+                        new KeyValuePair<string, string>("client_id",data["client_id"]?.ToObject<string>()),
+                        new KeyValuePair<string, string>("client_secret", data["client_secret"]?.ToObject<string>()),
+                        new KeyValuePair<string, string>("refresh_token", data["refresh_token"]?.ToObject<string>()),
+                        new KeyValuePair<string, string>("redirect_uri", data["redirect_uri"]?.ToObject<string>()),
+                        new KeyValuePair<string, string>("username", data["username"]?.ToObject<string>()),
+                        new KeyValuePair<string, string>("password", data["password"]?.ToObject<string>()),
+                        new KeyValuePair<string, string>("scope", data["scope"]?.ToObject<string>()),
+                    })
+            };
+
+            var response = await httpClient.SendAsync(httpRequest);
+            string content = await response.Content.ReadAsStringAsync();
+            return content;
+        }
+        #endregion
     }
 
     public class TokenModel

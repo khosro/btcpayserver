@@ -40,12 +40,10 @@ namespace BTCPayServer.RestApi.Test
         {
             var handler = new HttpClientHandler();
             handler.ClientCertificateOptions = ClientCertificateOption.Manual;
-            handler.ServerCertificateCustomValidationCallback =
-                (httpRequestMessage, cert, cetChain, policyErrors) =>
-                {
-                    return true;
-                };
-
+            handler.ServerCertificateCustomValidationCallback = (httpRequestMessage, cert, cetChain, policyErrors) =>
+            {
+                return true;
+            };
             return new HttpClient(handler);
         }
 
@@ -78,6 +76,7 @@ namespace BTCPayServer.RestApi.Test
             }
 
             string email = Guid.NewGuid().ToString() + "@yahoo.com";
+            // email = "sasas11";
             string password = "1234567";
 
             await CreateAccountAsync(email, password);
@@ -164,8 +163,13 @@ namespace BTCPayServer.RestApi.Test
             }
             response.EnsureSuccessStatusCode();
 
-            string responsedata = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"Login Response : {responsedata}");
+            var payload = JObject.Parse(await response.Content.ReadAsStringAsync());
+            if (!Boolean.Parse(payload["status"].ToString()))
+            {
+                throw new Exception((payload["error"].ToString()));
+
+            }
+            Console.WriteLine($"Login Response : {payload.ToString()}");
         }
 
         public static async Task<string> GetTokenAsync(HttpClient client, string email, string password)
