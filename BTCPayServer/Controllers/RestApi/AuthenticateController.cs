@@ -79,9 +79,16 @@ namespace BTCPayServer.Controllers.RestApi
                 });
              * 
              */
-            HttpClient httpClient = new HttpClient();
+            var handler = new HttpClientHandler();
+            handler.ClientCertificateOptions = ClientCertificateOption.Manual;
+            handler.ServerCertificateCustomValidationCallback = (httpRequestMessage, cert, cetChain, policyErrors) =>
+            {
+                return true;//Because this is our host we can ignore it.
+            };
+            HttpClient httpClient = new HttpClient(handler);
 
-            var httpRequest = new HttpRequestMessage(HttpMethod.Post, new Uri(new Uri(this.HttpContext.Request.GetAbsoluteRootUri().ToString()), "connect/token"))
+            var uri = new Uri(new Uri(this.HttpContext.Request.GetAbsoluteRootUri().ToString()), "connect/token");
+            var httpRequest = new HttpRequestMessage(HttpMethod.Post, uri)
             {
                 Content = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>()
                         {
@@ -95,7 +102,6 @@ namespace BTCPayServer.Controllers.RestApi
                             new KeyValuePair<string, string>("scope",   data.scope),
                         })
             };
-
             var response = await httpClient.SendAsync(httpRequest);
             string content = await response.Content.ReadAsStringAsync();
             return content;
@@ -122,9 +128,17 @@ namespace BTCPayServer.Controllers.RestApi
                 });
              * 
              */
-            HttpClient httpClient = new HttpClient();
+            var handler = new HttpClientHandler();
+            handler.ClientCertificateOptions = ClientCertificateOption.Manual;
+            handler.ServerCertificateCustomValidationCallback = (httpRequestMessage, cert, cetChain, policyErrors) =>
+            {
+                return true;//Because this is our host we can ignore it.
+            };
+            HttpClient httpClient = new HttpClient(handler);
 
-            var httpRequest = new HttpRequestMessage(HttpMethod.Post, new Uri(new Uri(this.HttpContext.Request.GetAbsoluteRootUri().ToString()), "connect/token"))
+            var uri = new Uri(new Uri(this.HttpContext.Request.GetAbsoluteRootUri().ToString()), "connect/token");
+
+            var httpRequest = new HttpRequestMessage(HttpMethod.Post, uri)
             {
                 Content = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>()
                     {
