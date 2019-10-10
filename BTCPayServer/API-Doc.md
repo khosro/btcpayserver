@@ -1,3 +1,10 @@
+
+NOTICE : The mapped port in firewall must be the same as port in local server.
+For example in firewall when we must mapped as following   77.77.77.77:8080 -> 192.168.1.2:8080
+Not following  77.77.77.77:8081 -> 192.168.1.2:8080(For exmaple something like we do with RDP connection, that we changed port to connect from outside)
+             
+------
+
 {baseurl}/api/authenticate/register
 
 Send Data(Send as Json -  application/json; charset=utf-8) : 

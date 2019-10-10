@@ -91,6 +91,11 @@ namespace BTCPayServer.Controllers.RestApi
              * For exmaple in Server maybe IP of that server can not be resolved, we do not use it.
              * var uri = new Uri(new Uri(this.HttpContext.Request.GetAbsoluteRootUri().ToString()), "connect/token");
              */
+
+            /*NOTICE : The mapped port in firewall must be the same as port in local server
+             * For example in firewall when we must mapped as following   77.77.77.77:8080 -> 192.168.1.2:8080
+             * Not following  77.77.77.77:8081 -> 192.168.1.2:8080(For exmaple something like we do with RDP connection, that we changed port to connect from outside)
+             * */
             var uri = new Uri($"{this.HttpContext.Request.Scheme}://localhost:{this.HttpContext.Request.Host.Port}/connect/token");
             var httpRequest = new HttpRequestMessage(HttpMethod.Post, uri)
             {
@@ -144,6 +149,10 @@ namespace BTCPayServer.Controllers.RestApi
                  * For exmaple in Server maybe IP of that server can not be resolved, we do not use it.
                  * var uri = new Uri(new Uri(this.HttpContext.Request.GetAbsoluteRootUri().ToString()), "connect/token");
                  */
+            /*NOTICE : The mapped port in firewall must be the same as port in local server
+            * For example in firewall when we must mapped as following   77.77.77.77:8080 -> 192.168.1.2:8080
+            * Not following  77.77.77.77:8081 -> 192.168.1.2:8080(For exmaple something like we do with RDP connection, that we changed port to connect from outside)
+            * */
             var uri = new Uri($"{this.HttpContext.Request.Scheme}://localhost:{this.HttpContext.Request.Host.Port}/connect/token");
             var httpRequest = new HttpRequestMessage(HttpMethod.Post, uri)
             {
