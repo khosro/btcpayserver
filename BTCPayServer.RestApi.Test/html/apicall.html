@@ -3,7 +3,6 @@
 <title>Api Call</title>
 <script src="jquery-3.4.1.min.js"></script> 
 <script type="text/javascript"> 
-var new_num = 40; // global variable
 jQuery(document).ready(function(){ 
 	var url = '';
 	var arr ;
@@ -12,31 +11,70 @@ jQuery(document).ready(function(){
 	var client_secret = 'secret';  
 	
       baseUrl   = 'http://localhost:5000';
-	  client_id= '2224adb0-481f-4bdb-844a-cc8eacbd3199';	
-	  	  
+	  client_id= '2224adb0-481f-4bdb-844a-cc8eacbd3199';//My home computer
+	
+     var email= uuidv4();
+     var password='2131312312';
+	
 	  url = '/api/authenticate/register';
-	  arr = { email : 's11', password : '2131312312' };
+	  arr = { email : email , password : password };
+	  
+		json(arr,baseUrl+url);
+
 	
-	
-	  arr = { grant_type : "password",username : 'sasas11',password : '2131312312',client_id : client_id,client_secret : client_secret,scope : "openid offline_access" },
+	  arr = { "grant_type" : "password","username" : email,"password" : password,"client_id" : client_id,"client_secret" : client_secret,"scope" : "openid offline_access" },
 	   url = '/api/authenticate/connect/token';
 		
-		$.ajax({
-			url: baseUrl+url,
+	    formurlencoded(arr,baseUrl+url);
+});
+
+function uuidv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+
+function formurlencoded(arr,url){
+
+	$.ajax({
+			url:url ,
 			type: 'POST',
-			data: JSON.stringify(arr),
-			contentType: 'application/json; charset=utf-8',
+			data: arr,
+			contentType: "application/x-www-form-urlencoded",  
 			dataType: 'json',
 			async: false,
 			success: function(msg) {
-				alert(msg);
+				alert(JSON.stringify(msg));
 			},
 			 error: function (xhr, ajaxOptions, thrownError) {
 				alert(xhr.status);
 				alert(thrownError);
 			}
 		});
-});
+}
+
+function json(arr,url){
+
+	$.ajax({
+			url: url,
+			type: 'POST',
+			data: JSON.stringify(arr),
+			contentType: 'application/json; charset=utf-8',
+ 			dataType: 'json',
+			async: false,
+			success: function(msg) {
+				alert(JSON.stringify(msg));
+			},
+			 error: function (xhr, ajaxOptions, thrownError) {
+				alert(xhr.status);
+				alert(thrownError);
+			}
+		});
+}
+
+
 </script>
 </head>
 <body>

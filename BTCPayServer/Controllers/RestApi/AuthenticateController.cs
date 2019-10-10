@@ -55,8 +55,8 @@ namespace BTCPayServer.Controllers.RestApi
             }
         }
 
-        [HttpPost("connect/token")]
-        public async Task<object> Token([FromBody]JObject data)
+        [HttpPost("connect/tokenjson")]
+        public async Task<object> Tokenjson([FromBody]JObject data)
         {
             /*
              * TODO.
@@ -90,12 +90,63 @@ namespace BTCPayServer.Controllers.RestApi
                         new KeyValuePair<string, string>("scope", data["scope"]?.ToObject<string>()),
                     })
             };
-          
+
             var response = await httpClient.SendAsync(httpRequest);
-
-
             string content = await response.Content.ReadAsStringAsync();
             return content;
         }
+
+        [HttpPost("connect/token")]
+        public async Task<object> Token([FromForm] TokenModel data)
+        {
+            /*
+             * TODO.
+             * This is bad approach.Solve it.
+             * But in order to prevent the following error, i do it.
+             * 
+             * "has been blocked by CORS policy: Response to preflight request doesn't pass access control check: 
+             * No 'Access-Control-Allow-Origin' header is present on the requested resource."
+             
+             * And also test the following but does not work(Apply CORS Globally)
+             * 
+                services.Configure<MvcOptions>(options =>
+                {
+                options.Filters.Add(new CorsAuthorizationFilterFactory("AllowMyOrigin"));
+                });
+             * 
+             */
+            HttpClient httpClient = new HttpClient();
+
+            var httpRequest = new HttpRequestMessage(HttpMethod.Post, new Uri(new Uri(this.HttpContext.Request.GetAbsoluteRootUri().ToString()), "connect/token"))
+            {
+                Content = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>()
+                        {
+                            new KeyValuePair<string, string>("grant_type", data.grant_type),
+                            new KeyValuePair<string, string>("client_id", data.client_id ),
+                            new KeyValuePair<string, string>("client_secret",  data.client_secret ),
+                            new KeyValuePair<string, string>("refresh_token", data.refresh_token ),
+                            new KeyValuePair<string, string>("redirect_uri",  data.redirect_uri ),
+                            new KeyValuePair<string, string>("username",  data.username ),
+                            new KeyValuePair<string, string>("password",  data.password ),
+                            new KeyValuePair<string, string>("scope",   data.scope),
+                        })
+            };
+
+            var response = await httpClient.SendAsync(httpRequest);
+            string content = await response.Content.ReadAsStringAsync();
+            return content;
+        }
+    }
+
+    public class TokenModel
+    {
+        public string grant_type { get; set; }
+        public string client_id { get; set; }
+        public string client_secret { get; set; }
+        public string refresh_token { get; set; }
+        public string redirect_uri { get; set; }
+        public string username { get; set; }
+        public string password { get; set; }
+        public string scope { get; set; }
     }
 }

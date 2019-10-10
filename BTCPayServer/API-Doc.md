@@ -1,6 +1,6 @@
 {baseurl}/api/authenticate/register
 
-Send Data(Send as Json) : 
+Send Data(Send as Json -  application/json; charset=utf-8) : 
 {email = email, password = password}
 
 Returns : 
@@ -13,8 +13,8 @@ If error occured "Error" has content, otherwise empty
 #https://{baseurl}/connect/token  #Disabled, but maybe enable again
 https://{baseurl}/api/authenticate/connect/token
 
-#Send Data (FormUrlEncodedContent) :  #Disabled, but maybe enable again
-Send Data (Send as Json) : 
+Send Data (FormUrlEncodedContent - application/x-www-form-urlencoded )
+
 ["grant_type"] = "password",
 ["username"] = email,
 ["password"] = password,
@@ -42,8 +42,8 @@ If error occured :
 #{baseurl}/connect/token   #Disabled, but maybe enable again
 {baseurl}/api/authenticate/connect/token
 
-#Send Data (FormUrlEncodedContent) :  #Disabled, but maybe enable again
-Send Data (Send as Json) : 
+Send Data (FormUrlEncodedContent - application/x-www-form-urlencoded) :   
+
 ["grant_type"] = "refresh_token",
 ["client_id"] = "clientId",
 ["client_secret"] = "client_secret",
@@ -66,6 +66,6 @@ If error occured :
   "error_description": ""
 }
 
-
+--------------------
 
 
