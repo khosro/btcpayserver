@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -15,15 +16,18 @@ namespace BTCPayServer.RestApi.Test
 {
     class Program
     {
-
-        //static string baseurl = "http://localhost:5000";
-        static string baseurl = "https://192.168.41.93";
+        static string baseurl = "http://localhost:5000";
+        //static string baseurl = "https://192.168.41.93";
+        static string BTCPayServer_RestApi_Test_Url_Location = "C:/BTCPayServer.RestApi.Test.Url5555.txt";
 
         //static string clientId = "ee3134a1-b3c8-4adf-8776-cd5173d28a4e";//My computer
-        static string clientId = "864e4d8d-c3eb-4ac6-a225-e09862ca94c7";//Test Server
+        //static string clientId = "864e4d8d-c3eb-4ac6-a225-e09862ca94c7";//Test Server
+        static string clientId = "2224adb0-481f-4bdb-844a-cc8eacbd3199";//my home Server
+
+        static string ApiToken = baseurl + "/api/authenticate/connect/token";//my home Server
+
 
         static string client_secret = "secret";
-
         static string token = "";
         static string refresh_token = "";
         static HttpClient client;
@@ -66,17 +70,19 @@ namespace BTCPayServer.RestApi.Test
 
         public static async Task MainAsync(string[] args)
         {
-
+            if (File.Exists(BTCPayServer_RestApi_Test_Url_Location))
+            {
+                baseurl = File.ReadAllText(BTCPayServer_RestApi_Test_Url_Location).Trim();
+            }
             client = GetHttpClient();
-            //try
-            //{
-            //    await GetResourceAsync();
-            //}
-            //catch (Exception ex)
-            //{
-            //    Log(ex.Message);
-            //}
-
+            try
+            {
+                await GetResourceAsync();
+            }
+            catch (Exception ex)
+            {
+                Log("Get resource without login " + ex.Message);
+            }
 
             NEVER_EAT_POISON_Disable_CertificateValidation();
 
@@ -181,16 +187,28 @@ namespace BTCPayServer.RestApi.Test
 
         public static async Task<string> GetTokenAsync(HttpClient client, string email, string password)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{baseurl}/connect/token");
-            request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
+            //var request = new HttpRequestMessage(HttpMethod.Post, ApiToken);
+            //request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
+            //{
+            //    ["grant_type"] = "password",
+            //    ["username"] = email,
+            //    ["password"] = password,
+            //    ["client_id"] = clientId,
+            //    ["client_secret"] = client_secret,
+            //    ["scope"] = "openid offline_access",
+            //});
+
+            var request = new HttpRequestMessage(HttpMethod.Post, ApiToken);
+            request.Content = new StringContent(JsonConvert.SerializeObject(new
             {
-                ["grant_type"] = "password",
-                ["username"] = email,
-                ["password"] = password,
-                ["client_id"] = clientId,
-                ["client_secret"] = client_secret,
-                ["scope"] = "openid offline_access",
-            });
+                grant_type = "password",
+                username = email,
+                password = password,
+                client_id = clientId,
+                client_secret = client_secret,
+                scope = "openid offline_access"
+            }), Encoding.UTF8, "application/json");
+
 
             var response = await client.SendAsync(request, HttpCompletionOption.ResponseContentRead);
             response.EnsureSuccessStatusCode();
@@ -198,7 +216,7 @@ namespace BTCPayServer.RestApi.Test
             var payload = JObject.Parse(await response.Content.ReadAsStringAsync());
             if (payload["error"] != null)
             {
-                throw new InvalidOperationException("An error occurred while retrieving an access token.");
+                throw new InvalidOperationException(payload["error"].ToString());
             }
             token = (string)payload["access_token"];
             refresh_token = (string)payload["refresh_token"];
@@ -207,8 +225,7 @@ namespace BTCPayServer.RestApi.Test
 
         public static async Task<string> GetResourceAsync(HttpClient client)
         {
-            string url = $"{baseurl}/api/test/me/id";
-            url = $"{baseurl}/api/test1/testaction";
+            string url = $"{baseurl}/api/test1/testaction";
             var request = new HttpRequestMessage(HttpMethod.Get, url);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -223,29 +240,39 @@ namespace BTCPayServer.RestApi.Test
         {
             Log("Get new token by refresh token");
 
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{baseurl}/connect/token");
-            request.Content = new FormUrlEncodedContent(
-                //new List<KeyValuePair<string, string>>()
-                new Dictionary<string, string>
-                {
-                    /*
-                      new KeyValuePair<string, string>("grant_type","refresh_token"),
-                    new KeyValuePair<string, string>("client_id", clientId),
-                    new KeyValuePair<string, string>("client_secret", client_secret),
-                    new KeyValuePair<string, string>("refresh_token", refresh_token),
-                    new KeyValuePair<string, string>("redirect_uri", ""),
-                    */
-                    ["grant_type"] = "refresh_token",
-                    ["client_id"] = clientId,
-                    ["client_secret"] = client_secret,
-                    ["refresh_token"] = refresh_token,
-                    ["redirect_uri"] = "",
-                });
+            /* var request = new HttpRequestMessage(HttpMethod.Post, ApiToken);
+             request.Content = new FormUrlEncodedContent(
+                 new Dictionary<string, string>
+                 {
+                     ["grant_type"] = "refresh_token",
+                     ["client_id"] = clientId,
+                     ["client_secret"] = client_secret,
+                     ["refresh_token"] = refresh_token,
+                     ["redirect_uri"] = "",
+                 });
+                 */
+
+            var request = new HttpRequestMessage(HttpMethod.Post, ApiToken);
+            request.Content = new StringContent(JsonConvert.SerializeObject(new
+            {
+                grant_type = "refresh_token",
+                client_id = clientId,
+                client_secret = client_secret,
+                refresh_token = refresh_token,
+                redirect_uri = "",
+            }), Encoding.UTF8, "application/json");
+
 
             var response = await client.SendAsync(request, HttpCompletionOption.ResponseContentRead);
             response.EnsureSuccessStatusCode();
 
             var payload = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+            if (payload["error"] != null)
+            {
+                throw new InvalidOperationException(payload["error"].ToString());
+            }
+
             token = (string)payload["access_token"];
             var refresh_tokenNew = (string)payload["refresh_token"];
 

@@ -4,6 +4,7 @@ using BTCPayServer.Data;
 using BTCPayServer.Models.AccountViewModels;
 using BTCPayServer.Services.Stores;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Validation;
@@ -12,6 +13,7 @@ namespace BTCPayServer.Controllers.RestApi
 {
     [Route("api/[controller]")]
     [ApiController]
+    [EnableCors(CorsPolicies.All)]
     [Authorize(AuthenticationSchemes = OpenIddictValidationDefaults.AuthenticationScheme)]
     public class Test1Controller : ControllerBase
     {
