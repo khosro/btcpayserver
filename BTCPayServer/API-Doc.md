@@ -4,7 +4,7 @@ Send Data(Send as Json -  application/json; charset=utf-8) :
 {email = email, password = password}
 
 Returns : 
-{ Status = false, Error = "Error"}
+{ status = false, error = "Error"}
 
 If error occured "Error" has content, otherwise empty
 
