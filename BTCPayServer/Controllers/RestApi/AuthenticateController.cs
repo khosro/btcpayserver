@@ -87,7 +87,11 @@ namespace BTCPayServer.Controllers.RestApi
             };
             HttpClient httpClient = new HttpClient(handler);
 
-            var uri = new Uri(new Uri(this.HttpContext.Request.GetAbsoluteRootUri().ToString()), "connect/token");
+            /*
+             * For exmaple in Server maybe IP of that server can not be resolved, we do not use it.
+             * var uri = new Uri(new Uri(this.HttpContext.Request.GetAbsoluteRootUri().ToString()), "connect/token");
+             */
+            var uri = new Uri($"{this.HttpContext.Request.Scheme}://localhost:{this.HttpContext.Request.Host.Port}/connect/token");
             var httpRequest = new HttpRequestMessage(HttpMethod.Post, uri)
             {
                 Content = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>()
@@ -136,8 +140,11 @@ namespace BTCPayServer.Controllers.RestApi
             };
             HttpClient httpClient = new HttpClient(handler);
 
-            var uri = new Uri(new Uri(this.HttpContext.Request.GetAbsoluteRootUri().ToString()), "connect/token");
-
+            /*
+                 * For exmaple in Server maybe IP of that server can not be resolved, we do not use it.
+                 * var uri = new Uri(new Uri(this.HttpContext.Request.GetAbsoluteRootUri().ToString()), "connect/token");
+                 */
+            var uri = new Uri($"{this.HttpContext.Request.Scheme}://localhost:{this.HttpContext.Request.Host.Port}/connect/token");
             var httpRequest = new HttpRequestMessage(HttpMethod.Post, uri)
             {
                 Content = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>()
