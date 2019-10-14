@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OpenIddict.Abstractions;
 using OpenIddict.Validation;
@@ -23,7 +24,6 @@ namespace BTCPayServer.Controllers.RestApi
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly StoreRepository _storeRepository;
         private readonly IServiceProvider _serviceProvider;
-
         public AuthenticateController(UserManager<ApplicationUser> userManager, StoreRepository storeRepository, IServiceProvider serviceProvider)
         {
             _userManager = userManager;
@@ -32,8 +32,9 @@ namespace BTCPayServer.Controllers.RestApi
         }
 
         [HttpPost("register")]
-        public async Task<object> Register([FromBody]JObject data)
+        public async Task<IActionResult> Register([FromBody]JObject data)
         {
+            var response = new SingleResponse<string>();
             try
             {
                 string email = data["email"]?.ToObject<string>();
@@ -49,20 +50,31 @@ namespace BTCPayServer.Controllers.RestApi
                 string errors = string.Join(",", account.GetModelSateError()).Trim();
                 bool hasError = !string.IsNullOrWhiteSpace(errors);
                 if (string.IsNullOrWhiteSpace(account.RegisteredUserId) && !hasError)
-                    return new { Status = false, Error = "You can not sign in"/*Maybe policies.LockSubscription = true*/ };
+                {
+                    response.ErrorMessage = "You can not sign in";/*Maybe policies.LockSubscription = true*/
+                    return response.ToHttpResponse();
+                }
                 else
-                    return new { Status = hasError ? false : true, Error = errors };
+                {
+                    response.ErrorMessage = errors;
+                    response.Model = email;
+                    return response.ToHttpResponse();
+                }
             }
             catch (Exception ex)
             {
                 //TODO.Log Error 
-                return new { Status = false, Error = "Error" };
+                response.ServerErrorMessage = "Error";
+                return response.ToHttpResponse();
             }
         }
 
+
         [HttpPost("connect/token")]
-        public async Task<object> Token([FromForm] TokenModel data)
+        public async Task<object> Token([FromForm] TokenRequestModel data)
         {
+            var response = new SingleResponse<TokenResponseModel>();
+
             /*
              * TODO.
              * This is bad approach.Solve it.
@@ -111,80 +123,12 @@ namespace BTCPayServer.Controllers.RestApi
                             new KeyValuePair<string, string>("scope",   data.scope),
                         })
             };
-            var response = await httpClient.SendAsync(httpRequest);
-            string content = await response.Content.ReadAsStringAsync();
-            return content;
+            var openIdResponse = await httpClient.SendAsync(httpRequest);
+            string content = await openIdResponse.Content.ReadAsStringAsync();
+            TokenResponseModel tokenResponseModel = JsonConvert.DeserializeObject<TokenResponseModel>(content);
+            response.ErrorMessage = tokenResponseModel.error_description;
+            response.Model = tokenResponseModel;
+            return response.ToHttpCreatedResponse();
         }
-
-        #region Obsolete
-        [HttpPost("connect/tokenjson")]
-        [Obsolete("Use Token instead")]
-        public async Task<object> Tokenjson([FromBody]JObject data)
-        {
-            /*
-             * TODO.
-             * This is bad approach.Solve it.
-             * But in order to prevent the following error, i do it.
-             * 
-             * "has been blocked by CORS policy: Response to preflight request doesn't pass access control check: 
-             * No 'Access-Control-Allow-Origin' header is present on the requested resource."
-             
-             * And also test the following but does not work(Apply CORS Globally)
-             * 
-                services.Configure<MvcOptions>(options =>
-                {
-                options.Filters.Add(new CorsAuthorizationFilterFactory("AllowMyOrigin"));
-                });
-             * 
-             */
-            var handler = new HttpClientHandler();
-            handler.ClientCertificateOptions = ClientCertificateOption.Manual;
-            handler.ServerCertificateCustomValidationCallback = (httpRequestMessage, cert, cetChain, policyErrors) =>
-            {
-                return true;//Because this is our host we can ignore it.
-            };
-            HttpClient httpClient = new HttpClient(handler);
-
-            /*
-                 * For exmaple in Server maybe IP of that server can not be resolved, we do not use it.
-                 * var uri = new Uri(new Uri(this.HttpContext.Request.GetAbsoluteRootUri().ToString()), "connect/token");
-                 */
-            /*NOTICE : The mapped port in firewall must be the same as port in local server
-            * For example in firewall when we must mapped as following   77.77.77.77:8080 -> 192.168.1.2:8080
-            * Not following  77.77.77.77:8081 -> 192.168.1.2:8080(For exmaple something like we do with RDP connection, that we changed port to connect from outside)
-            * */
-            var uri = new Uri($"{this.HttpContext.Request.Scheme}://localhost:{this.HttpContext.Request.Host.Port}/connect/token");
-            var httpRequest = new HttpRequestMessage(HttpMethod.Post, uri)
-            {
-                Content = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>()
-                    {
-                        new KeyValuePair<string, string>("grant_type", data["grant_type"]?.ToObject<string>()),
-                        new KeyValuePair<string, string>("client_id",data["client_id"]?.ToObject<string>()),
-                        new KeyValuePair<string, string>("client_secret", data["client_secret"]?.ToObject<string>()),
-                        new KeyValuePair<string, string>("refresh_token", data["refresh_token"]?.ToObject<string>()),
-                        new KeyValuePair<string, string>("redirect_uri", data["redirect_uri"]?.ToObject<string>()),
-                        new KeyValuePair<string, string>("username", data["username"]?.ToObject<string>()),
-                        new KeyValuePair<string, string>("password", data["password"]?.ToObject<string>()),
-                        new KeyValuePair<string, string>("scope", data["scope"]?.ToObject<string>()),
-                    })
-            };
-
-            var response = await httpClient.SendAsync(httpRequest);
-            string content = await response.Content.ReadAsStringAsync();
-            return content;
-        }
-        #endregion
-    }
-
-    public class TokenModel
-    {
-        public string grant_type { get; set; }
-        public string client_id { get; set; }
-        public string client_secret { get; set; }
-        public string refresh_token { get; set; }
-        public string redirect_uri { get; set; }
-        public string username { get; set; }
-        public string password { get; set; }
-        public string scope { get; set; }
     }
 }

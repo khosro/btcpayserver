@@ -141,9 +141,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\AspNetCore.FileManager\AspNetCore.FileManager.csproj" />
 	  <ProjectReference Include="..\BTCPayServer.Data\BTCPayServer.Data.csproj" />
 	  <ProjectReference Include="..\BTCPayServer.Rating\BTCPayServer.Rating.csproj" />
 	  <ProjectReference Include="..\BTCPayServer.Common\BTCPayServer.Common.csproj" />
+	  <ProjectReference Include="..\BTCPayServer.RestApi.Common\BTCPayServer.RestApi.Common.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

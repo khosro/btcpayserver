@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29324.140
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BTCPayServer", "BTCPayServer\BTCPayServer.csproj", "{949A0870-8D8C-4DE5-8845-DDD560489177}"
 EndProject
@@ -26,6 +26,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NBXplorer.Client", "..\NBXplorer\NBXplorer.Client\NBXplorer.Client.csproj", "{05BC8D80-D17A-4B6F-AC0A-A236BB675E91}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EthereumXplorer.Client", "..\NBXplorer\EthereumXplorer.Client\EthereumXplorer.Client.csproj", "{A3DC90AA-0F59-4840-AA14-32D651039618}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.FileManager", "AspNetCore.FileManager\AspNetCore.FileManager.csproj", "{D9B6BB90-93B4-4955-9FD7-86817B7F4158}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BTCPayServer.RestApi.Common", "BTCPayServer.RestApi.Common\BTCPayServer.RestApi.Common.csproj", "{2462F213-3808-48E8-84E9-95ED0A0E7B2E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -121,6 +125,30 @@ Global
 		{A3DC90AA-0F59-4840-AA14-32D651039618}.Release|x64.Build.0 = Release|Any CPU
 		{A3DC90AA-0F59-4840-AA14-32D651039618}.Release|x86.ActiveCfg = Release|Any CPU
 		{A3DC90AA-0F59-4840-AA14-32D651039618}.Release|x86.Build.0 = Release|Any CPU
+		{D9B6BB90-93B4-4955-9FD7-86817B7F4158}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9B6BB90-93B4-4955-9FD7-86817B7F4158}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9B6BB90-93B4-4955-9FD7-86817B7F4158}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D9B6BB90-93B4-4955-9FD7-86817B7F4158}.Debug|x64.Build.0 = Debug|Any CPU
+		{D9B6BB90-93B4-4955-9FD7-86817B7F4158}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D9B6BB90-93B4-4955-9FD7-86817B7F4158}.Debug|x86.Build.0 = Debug|Any CPU
+		{D9B6BB90-93B4-4955-9FD7-86817B7F4158}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9B6BB90-93B4-4955-9FD7-86817B7F4158}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9B6BB90-93B4-4955-9FD7-86817B7F4158}.Release|x64.ActiveCfg = Release|Any CPU
+		{D9B6BB90-93B4-4955-9FD7-86817B7F4158}.Release|x64.Build.0 = Release|Any CPU
+		{D9B6BB90-93B4-4955-9FD7-86817B7F4158}.Release|x86.ActiveCfg = Release|Any CPU
+		{D9B6BB90-93B4-4955-9FD7-86817B7F4158}.Release|x86.Build.0 = Release|Any CPU
+		{2462F213-3808-48E8-84E9-95ED0A0E7B2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2462F213-3808-48E8-84E9-95ED0A0E7B2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2462F213-3808-48E8-84E9-95ED0A0E7B2E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2462F213-3808-48E8-84E9-95ED0A0E7B2E}.Debug|x64.Build.0 = Debug|Any CPU
+		{2462F213-3808-48E8-84E9-95ED0A0E7B2E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2462F213-3808-48E8-84E9-95ED0A0E7B2E}.Debug|x86.Build.0 = Debug|Any CPU
+		{2462F213-3808-48E8-84E9-95ED0A0E7B2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2462F213-3808-48E8-84E9-95ED0A0E7B2E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2462F213-3808-48E8-84E9-95ED0A0E7B2E}.Release|x64.ActiveCfg = Release|Any CPU
+		{2462F213-3808-48E8-84E9-95ED0A0E7B2E}.Release|x64.Build.0 = Release|Any CPU
+		{2462F213-3808-48E8-84E9-95ED0A0E7B2E}.Release|x86.ActiveCfg = Release|Any CPU
+		{2462F213-3808-48E8-84E9-95ED0A0E7B2E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
