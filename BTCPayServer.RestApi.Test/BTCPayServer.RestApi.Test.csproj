@@ -12,4 +12,13 @@
     <PackageReference Include="System.Net.WebHeaderCollection" Version="4.3.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="UploadFileTest\Apple.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="UploadFileTest\FileToUpload.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

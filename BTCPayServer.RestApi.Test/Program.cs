@@ -18,14 +18,15 @@ namespace BTCPayServer.RestApi.Test
     {
         public static void Main(string[] args)
         {
-            RegisterLoginRun(args);
+           // RegisterLoginRun(args);
+
+            UploadFile.Upload().GetAwaiter().GetResult();
+       
         }
 
         static void RegisterLoginRun(string[] args)
         {
-            RegisterLogin.Run(args).GetAwaiter().GetResult();
-
-            //RegisterLogin.LoginWithProfile().GetAwaiter().GetResult();
+            new RegisterLogin().RunTest(args).GetAwaiter().GetResult();
         }
     }
 }

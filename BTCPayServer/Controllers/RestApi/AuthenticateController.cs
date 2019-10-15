@@ -16,7 +16,7 @@ using OpenIddict.Validation;
 
 namespace BTCPayServer.Controllers.RestApi
 {
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     [ApiController]
     [EnableCors(CorsPolicies.All)]
     public class AuthenticateController : ControllerBase

@@ -4,12 +4,75 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AspNetCore.FileManager.Models;
 using Microsoft.AspNetCore.Http;
 
 namespace AspNetCore.FileManager
 {
     public class ImageUploader : IFileUploader
     {
+        FileServerConfig _fileServerConfig;
+        public ImageUploader(FileServerConfig fileServerConfig)
+        {
+            this._fileServerConfig = fileServerConfig;
+        }
+
+        public bool IsFileFormatAcceptable(IFormFile file)
+        {
+            byte[] fileBytes;
+            using (var ms = new MemoryStream())
+            {
+                file.CopyTo(ms);
+                fileBytes = ms.ToArray();
+            }
+
+            var isFormatsupported = GetImageFormat(fileBytes) != ImageFormat.unknown;
+            if (!isFormatsupported)
+            {
+                throw new InvalidOperationException("Invalid file format");
+            }
+            return true;
+        }
+
+        public async Task<string> Upload(FileUploadModel fileUploadModel)
+        {
+            string fileName;
+            IFormFile file = fileUploadModel.File;
+            try
+            {
+                IsFileFormatAcceptable(file);
+                var extension = "." + file.FileName.Split('.')[file.FileName.Split('.').Length - 1];
+                fileName = Guid.NewGuid().ToString() + extension;
+
+                //var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot\\images", fileName);
+
+                string filePath = this._fileServerConfig.UploadFolder;
+                if (!string.IsNullOrWhiteSpace(fileUploadModel.Path))
+                {
+                    filePath = Path.Combine(filePath, fileUploadModel.Path);
+                    if (!Directory.Exists(filePath))
+                    {
+                        Directory.CreateDirectory(filePath);
+                    }
+                }
+                var path = Path.Combine(filePath, fileName);
+
+                using (var bits = new FileStream(path, FileMode.Create))
+                {
+                    await file.CopyToAsync(bits);
+                }
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+
+            return fileName;
+        }
+
+
+        #region Util methods
+
         public enum ImageFormat
         {
             bmp,
@@ -54,43 +117,6 @@ namespace AspNetCore.FileManager
             return ImageFormat.unknown;
         }
 
-        public void CheckFileFormat(IFormFile file)
-        {
-            byte[] fileBytes;
-            using (var ms = new MemoryStream())
-            {
-                file.CopyTo(ms);
-                fileBytes = ms.ToArray();
-            }
-
-            var isFormatsupported = GetImageFormat(fileBytes) != ImageFormat.unknown;
-            if (!isFormatsupported)
-            {
-                throw new InvalidOperationException("Invalid file format");
-            }
-        }
-
-        public async Task<string> Upload(IFormFile file)
-        {
-            string fileName;
-            try
-            {
-                CheckFileFormat(file);
-                var extension = "." + file.FileName.Split('.')[file.FileName.Split('.').Length - 1];
-                fileName = Guid.NewGuid().ToString() + extension; //Create a new Name for the file due to security reasons.
-                var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot\\images", fileName);
-
-                using (var bits = new FileStream(path, FileMode.Create))
-                {
-                    await file.CopyToAsync(bits);
-                }
-            }
-            catch (Exception e)
-            {
-                return e.Message;
-            }
-
-            return fileName;
-        }
+        #endregion
     }
 }
