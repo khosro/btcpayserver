@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace BTCPayServer.RestApi.Test
 {
@@ -23,8 +24,15 @@ namespace BTCPayServer.RestApi.Test
             MultipartFormDataContent multiContent = new MultipartFormDataContent();
             multiContent.Add(bytes, "files", FileName);
 
-            var content = new FormUrlEncodedContent(new Dictionary<string, string> { ["FirstName"] = "Salam", });
-            multiContent.Add(content, "data");
+            //var content = new FormUrlEncodedContent(new Dictionary<string, string> { { "FirstName", "Salam" } });
+            var content = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>()
+                        {
+                            new KeyValuePair<string, string>("FirstName", "Salam"),
+                        });
+            //multiContent.Add(content, "data");
+
+            multiContent.Add(new StringContent("tttttttttt"), "FirstName");
+            multiContent.Add(new StringContent(JsonConvert.SerializeObject(new Test() { FirstName= "2222"}), Encoding.UTF8, "application/json"), "data");
 
 
             /*var multiContent = new MultipartFormDataContent("Upload----" + DateTime.Now.ToString(CultureInfo.InvariantCulture));
@@ -33,5 +41,10 @@ namespace BTCPayServer.RestApi.Test
 
             await HttpClientUtil.SendAuthenticatedRequest(Url, HttpMethod.Post, multiContent);
         }
+    }
+
+    class Test
+    {
+        public string FirstName { get; set; }
     }
 }

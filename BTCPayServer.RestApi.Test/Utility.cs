@@ -13,7 +13,8 @@ namespace BTCPayServer.RestApi.Test
         //public static string baseurl = "https://192.168.41.93/api/v1";
 
         //public static string clientId = "864e4d8d-c3eb-4ac6-a225-e09862ca94c7";//Test Server
-        public static string clientId = "680f2454-7df3-4950-9f63-b39dd44bb0aa";//My computer
+        //public static string clientId = "680f2454-7df3-4950-9f63-b39dd44bb0aa";//My computer
+        public static string clientId = "2224adb0-481f-4bdb-844a-cc8eacbd3199";//My home computer
 
         #region Const
         const string fileSeparator = "file:";
