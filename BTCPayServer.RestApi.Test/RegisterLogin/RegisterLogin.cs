@@ -81,6 +81,10 @@ namespace BTCPayServer.RestApi.Test
                 try
                 {
                     await GetResourceAsync();
+                    if (StatusCode == HttpStatusCode.Unauthorized)
+                    {
+                        await RefreshTokenAsync();
+                    }
                 }
                 catch (Exception ex)
                 {

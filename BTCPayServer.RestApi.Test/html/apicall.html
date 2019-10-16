@@ -1,104 +1,157 @@
 <html>
 <head>
-<title>Api Call</title>
-<script src="jquery-3.4.1.min.js"></script> 
-<script type="text/javascript"> 
-jQuery(document).ready(function(){ 
-	
-});
+    <title>Api Call</title>
+    <script src="jquery-3.4.1.min.js"></script>
+    <script type="text/javascript">
 
-function callWebService(){
-	var url = '';
-	var arr ;
-    var baseUrl = '';
-	var client_id = '';  
-	var client_secret = 'secret';  
-	
-      baseUrl   = 'http://localhost:5000';
-	  client_id= '2224adb0-481f-4bdb-844a-cc8eacbd3199';//My home computer
-	  
-	  baseUrl   = 'https://192.168.41.93';
-	  client_id= '864e4d8d-c3eb-4ac6-a225-e09862ca94c7';//test server
-	
-     var email= uuidv4()+'@ddssd33333d';
-     var password='2131312312';
-	
-	  url = '/api/authenticate/register';
-	  arr = { email : email , password : password };
-	  
-		json(arr,baseUrl+url);
+        var baseUrl = '';
+        var client_id = '';
+        var client_secret = 'secret';
 
-	
-	  arr = { "grant_type" : "password","username" : email,"password" : password,"client_id" : client_id,"client_secret" : client_secret,"scope" : "openid offline_access" },
-	   url = '/api/authenticate/connect/token';
-		
-	    formurlencoded(arr,baseUrl+url);
-}
+        jQuery(document).ready(function () {
+            setBaseValues();
+            uploadData();
+        });
 
+        function setBaseValues() {
+            baseUrl = 'http://localhost:5000/api/v1';
+            //baseUrl   = 'https://192.168.41.93/api/v1';
 
-function uuidv4() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
-}
+            client_id = "680f2454-7df3-4950-9f63-b39dd44bb0aa";//My computer
+            //client_id= '2224adb0-481f-4bdb-844a-cc8eacbd3199';//My home computer
+            //client_id= '864e4d8d-c3eb-4ac6-a225-e09862ca94c7';//test server
+        }
 
+        function uploadData() {
+            var url = "/test1/upload";
 
-function formurlencoded(arr,url){
+            $("form#data").submit(function (e) {
+                e.preventDefault();
+                var token = callLogin();
+                console.log('token : ' + token);
+                var authorizationHeader = 'Bearer ' + token;
 
-	$.ajax({
-			url:url ,
-			type: 'POST',
-			data: arr,
-			contentType: "application/x-www-form-urlencoded",  
-			dataType: 'json',
-			async: false,
-			success: function(msg) {
-				alert(JSON.stringify(msg));
-			},
-			 error: function (xhr, ajaxOptions, thrownError) {
-				alert(xhr.status);
-				alert(thrownError);
-			}
-		});
-}
+                var arr = { "FirstName": "Salam" };
+                var formData = new FormData(this);
+                formData.append('data', JSON.stringify(arr));
+                formData.append('files', $('#image').get(0).files[0]);
+                formData.append('files', $('#image1').get(0).files[0]);
 
-function json(arr,url){
+                $.ajax({
+                    url: baseUrl + url,
+                    //beforeSend: function (request) {
+                    //    request.setRequestHeader("Authorization:", "Bearer " + token);
+                    //},
+                    headers: {
+                        'Authorization': authorizationHeader,
+                    },
+                    type: 'POST',
+                    data: formData,
+                    success: function (msg) {
+                        success(msg);
+                    }, error: function (xhr, ajaxOptions, thrownError) {
+                        error(xhr, ajaxOptions, thrownError);
+                    },
+                    cache: false,
+                    contentType: false,
+                    processData: false
+                });
+            });
+        }
 
-	$.ajax({
-			url: url,
-			type: 'POST',
-			data: JSON.stringify(arr),
-			contentType: 'application/json; charset=utf-8',
- 			dataType: 'json',
-			async: false,
-			success: function(msg) {
-				alert(JSON.stringify(msg));
-			},
-			 error: function (xhr, ajaxOptions, thrownError) {
-				alert(xhr.status);
-				alert(thrownError);
-			}
-		});
-}
+        function callLogin(email = '', password = '') {
 
+            var url = '';
+            var arr, token;
 
-</script>
+            if (email == '') {
+                email = uuidv4() + '@ddssd33333d';
+            }
+            if (password == '') {
+                password = '2131312312';
+            }
+            url = '/authenticate/register';
+            arr = { email: email, password: password };
+
+            json(arr, baseUrl + url);
+
+            arr = { "grant_type": "password", "username": email, "password": password, "client_id": client_id, "client_secret": client_secret, "scope": "openid offline_access" },
+                url = '/authenticate/connect/token';
+
+            var msg = formurlencoded(arr, baseUrl + url);
+
+            if (msg != undefined)
+                token = msg.model.access_token;
+            return token;
+        }
+
+        function uuidv4() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        function formurlencoded(arr, url) {
+            var result;
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: arr,
+                contentType: "application/x-www-form-urlencoded",
+                dataType: 'json',
+                async: false,
+                success: function (msg) {
+                    success(msg);
+                    result = msg;
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    error(xhr, ajaxOptions, thrownError);
+                }
+            });
+            return result;
+        }
+
+        function json(arr, url) {
+
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: JSON.stringify(arr),
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                async: false,
+                success: function (msg) {
+                    success(msg);
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    error(xhr, ajaxOptions, thrownError);
+                }
+            });
+        }
+
+        function success(msg) {
+            alert(JSON.stringify(msg));
+        }
+
+        function error(xhr, ajaxOptions, thrownError) {
+            alert(xhr.status);
+            alert(thrownError);
+            alert(xhr.responseText);
+        }
+
+    </script>
 </head>
 <body>
 
- <button onclick="callWebService()">Click me</button>
+    <button onclick="alert(callLogin())">Click me</button>
 
-<form id="upload">
-        <div>
-            <label for="file"></label>
-            <div>
-                <input type="file" id="file" />
-            </div>
-        </div>
-        <button type="submit">Upload</button>
+    <form id="data" method="post" enctype="multipart/form-data">
+        <input type="text" name="FirstName" value="Salam" />
+        <input id="image" name="image" type="file" />
+        <input id="image1" name="image1" type="file" />
+        <button>Submit</button>
     </form>
-	
-	
+
 </body>
 </html>

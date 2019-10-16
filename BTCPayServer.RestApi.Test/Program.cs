@@ -18,9 +18,9 @@ namespace BTCPayServer.RestApi.Test
     {
         public static void Main(string[] args)
         {
-           // RegisterLoginRun(args);
+            RegisterLoginRun(args);
 
-            UploadFile.Upload().GetAwaiter().GetResult();
+           // UploadFile.Upload().GetAwaiter().GetResult();
        
         }
 
