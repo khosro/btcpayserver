@@ -16,13 +16,13 @@ namespace BTCPayServer.Storage
         public StorageController(FileService fileService, BTCPayServerOptions serverOptions)
         {
             _FileService = fileService;
-            _dir =FileSystemFileProviderService.GetTempStorageDir(serverOptions);
+            _dir = FileSystemFileProviderService.GetTempStorageDir(serverOptions);
         }
 
         [HttpGet("{fileId}")]
         public async Task<IActionResult> GetFile(string fileId)
         {
-            var url = await _FileService.GetFileUrl(Request.GetAbsoluteRootUri(), fileId);
+            var url = await _FileService.GetFileUrl(Request.GetAbsoluteRootUri(), fileId, Request.HttpContext.User);
             return new RedirectResult(url);
         }
     }

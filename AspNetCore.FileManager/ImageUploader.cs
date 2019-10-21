@@ -29,7 +29,7 @@ namespace AspNetCore.FileManager
             var isFormatsupported = GetImageFormat(fileBytes) != ImageFormat.unknown;
             if (!isFormatsupported)
             {
-                throw new InvalidOperationException("Invalid file format");
+                throw new FileFormatException("Invalid file format");
             }
             return true;
         }

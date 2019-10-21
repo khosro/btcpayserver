@@ -8,11 +8,11 @@ Not following  77.77.77.77:8081 -> 192.168.1.2:8080(For exmaple something like w
 1.All the return type for all api has the following format :
 ```
     {
-    errorMessage: ""
+    errorMessage: []
     hasError: false
-    message: null
+    message: []
     model: "" //or model:{}
-    serverErrorMessage: null
+    serverErrorMessage: []
     }
 ```
 2.All Api url has the following prefix ``` https://{baseurl}/api/v1 ```
@@ -28,11 +28,11 @@ Send Data(Send as Json -  application/json; charset=utf-8) :
 Returns : 
 ```
 {
-    errorMessage: ""
+    errorMessage: []
     hasError: false
     message: null
     model: "username"
-    serverErrorMessage: null
+    serverErrorMessage:[]
 }
 ```
 
@@ -42,8 +42,8 @@ If error occured :
     "model":null,
     "message":null,
     "hasError":true,
-    "errorMessage":"You can not sign in",
-    "serverErrorMessage":null
+    "errorMessage":["You can not sign in"],
+    "serverErrorMessage":[]
 }
 
 ```
@@ -63,7 +63,7 @@ Send Data (FormUrlEncodedContent - application/x-www-form-urlencoded )
 If success : 
 ```
 {
-    errorMessage: null
+    errorMessage: []
     hasError: false
     message: null
     model:
@@ -74,7 +74,7 @@ If success :
     id_token: ""
     refresh_token: ""
     token_type: "Bearer"
-    serverErrorMessage: null
+    serverErrorMessage: []
 }
 ```
 
@@ -84,8 +84,8 @@ If error occured :
     "model":"11",
     "message":null,
     "hasError":true,
-    "errorMessage":"Passwords must be at least 6 characters.",
-    "serverErrorMessage":null
+    "errorMessage":["Passwords must be at least 6 characters."],
+    "serverErrorMessage":[]
 }
 ```
 
@@ -114,8 +114,8 @@ If success :
   },
   "message": null,
   "hasError": false,
-  "errorMessage": null,
-  "serverErrorMessage": null
+  "errorMessage": [],
+  "serverErrorMessage": []
 }
 
 ```
@@ -134,8 +134,8 @@ If error occured :
   },
   "message": null,
   "hasError": true,
-  "errorMessage": "The specified refresh token is invalid.",
-  "serverErrorMessage": null
+  "errorMessage": ["The specified refresh token is invalid."],
+  "serverErrorMessage": []
 }
 ```
 ---

@@ -307,6 +307,7 @@ namespace BTCPayServer.Hosting
                 endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
             });
 #endif
+            app.ConfigureCustomApp();
         }
     }
 }

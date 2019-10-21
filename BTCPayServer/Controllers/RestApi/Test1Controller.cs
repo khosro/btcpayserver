@@ -16,11 +16,10 @@ using AspNetCore;
 
 namespace BTCPayServer.Controllers.RestApi
 {
-    [Route("api/v1/[controller]")]
-    [ApiController]
+    [Route(ControllersUtil.ApiBersion1BaseUrl)]
     [EnableCors(CorsPolicies.All)]
     [Authorize(AuthenticationSchemes = OpenIddictValidationDefaults.AuthenticationScheme)]
-    public class Test1Controller : ControllerBase
+    public class Test1Controller : ApiControllerBase
     {
         ImageUploader _imageUploader;
         public Test1Controller(ImageUploader imageUploader)

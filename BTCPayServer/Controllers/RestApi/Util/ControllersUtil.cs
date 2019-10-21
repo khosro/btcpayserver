@@ -5,8 +5,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Security.Claims;
+using AspNetCore;
 #if NETCOREAPP21
 using AspNet.Security.OpenIdConnect.Primitives;
 #else
@@ -17,7 +19,26 @@ namespace BTCPayServer.Controllers.RestApi
 {
     public static class ControllersUtil
     {
-        public static T GetController<T>(HttpContext context, IServiceProvider serviceProvider, string userId = null, string storeId = null, Claim[] additionalClaims = null) where T : Controller
+        public const string ApiBersion1BaseUrl = "api/v1/[controller]";
+
+        public static T GetControllerUtil<T>(this HttpContext context, IServiceProvider serviceProvider, string userId = null, string storeId = null, Claim[] additionalClaims = null) where T : Controller
+        {
+            return context.GetController<T>(serviceProvider, userId, additionalClaims, Security, new object[] { storeId }, SetStore);
+        }
+
+        static void SetStore(object[] objects, HttpContext context, IServiceProvider serviceProvider, string userId)
+        {
+            if (objects != null && objects.Any())
+            {
+                string storeId = objects[0].ToString();
+                if (storeId != null)
+                {
+                    context.SetStoreData(serviceProvider.GetService<StoreRepository>().FindStore(storeId, userId).GetAwaiter().GetResult());
+                }
+            }
+        }
+
+        static void Security(HttpContext context, Claim[] additionalClaims, string userId)
         {
             if (userId != null)
             {
@@ -27,73 +48,6 @@ namespace BTCPayServer.Controllers.RestApi
                     claims.AddRange(additionalClaims);
                 context.User = new ClaimsPrincipal(new ClaimsIdentity(claims.ToArray(), Policies.CookieAuthentication));
             }
-            if (storeId != null)
-            {
-                context.SetStoreData(serviceProvider.GetService<StoreRepository>().FindStore(storeId, userId).GetAwaiter().GetResult());
-            }
-            var scope = (IServiceScopeFactory)serviceProvider.GetService(typeof(IServiceScopeFactory));
-            var provider = scope.CreateScope().ServiceProvider;
-            context.RequestServices = provider;
-
-            var httpAccessor = provider.GetRequiredService<IHttpContextAccessor>();
-            httpAccessor.HttpContext = context;
-
-            var controller = (T)ActivatorUtilities.CreateInstance(provider, typeof(T));
-
-            controller.Url = new UrlHelperMock(new Uri(context.Request.GetCurrentUrl()));
-            controller.ControllerContext = new ControllerContext()
-            {
-                HttpContext = context
-            };
-            return controller;
-        }
-
-        public static List<string> GetModelSateError(this Controller controller)
-        {
-            List<string> errors = new List<string>();
-            foreach (var modelState in controller.ModelState.Values)
-            {
-                foreach (var modelError in modelState.Errors)
-                {
-                    errors.Add(modelError.ErrorMessage);
-                }
-            }
-            return errors;
-        }
-    }
-
-    class UrlHelperMock : IUrlHelper
-    {
-        Uri _BaseUrl;
-        public UrlHelperMock(Uri baseUrl)
-        {
-            _BaseUrl = baseUrl;
-        }
-        public ActionContext ActionContext => throw new NotImplementedException();
-
-        public string Action(UrlActionContext actionContext)
-        {
-            return $"{_BaseUrl}mock";
-        }
-
-        public string Content(string contentPath)
-        {
-            return $"{_BaseUrl}{contentPath}";
-        }
-
-        public bool IsLocalUrl(string url)
-        {
-            return false;
-        }
-
-        public string Link(string routeName, object values)
-        {
-            return _BaseUrl.AbsoluteUri;
-        }
-
-        public string RouteUrl(UrlRouteContext routeContext)
-        {
-            return _BaseUrl.AbsoluteUri;
         }
     }
 }

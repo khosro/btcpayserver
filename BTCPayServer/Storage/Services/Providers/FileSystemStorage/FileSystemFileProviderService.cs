@@ -23,13 +23,14 @@ namespace BTCPayServer.Storage.Services.Providers.FileSystemStorage
             _options = options;
         }
         public const string LocalStorageDirectoryName = "LocalStorage";
+        public const string DownloadUrl = "download";
 
         public static string GetStorageDir(BTCPayServerOptions options)
         {
             return Path.Combine(options.DataDir, LocalStorageDirectoryName);
         }
-        
-        
+
+
         public static string GetTempStorageDir(BTCPayServerOptions options)
         {
             return Path.Combine(GetStorageDir(options), "tmp");
@@ -48,7 +49,11 @@ namespace BTCPayServer.Storage.Services.Providers.FileSystemStorage
         public override async Task<string> GetFileUrl(Uri baseUri, StoredFile storedFile, StorageSettings configuration)
         {
             var baseResult = await base.GetFileUrl(baseUri, storedFile, configuration);
-            var url = new Uri(baseUri,LocalStorageDirectoryName );
+            Uri url = baseUri;
+            if (string.IsNullOrEmpty(storedFile.ApplicationUserId))
+                url = new Uri(baseUri, LocalStorageDirectoryName);
+            else
+                return new Uri(baseUri, $"{DownloadUrl}/{storedFile.Id}").AbsoluteUri;
             return baseResult.Replace(new DirectoryInfo(GetStorageDir(_options)).FullName, url.AbsoluteUri,
                 StringComparison.InvariantCultureIgnoreCase);
         }
@@ -60,8 +65,8 @@ namespace BTCPayServer.Storage.Services.Providers.FileSystemStorage
 
             var localFileDescriptor = new TemporaryLocalFileDescriptor()
             {
-                Expiry = expiry, 
-                FileId = storedFile.Id, 
+                Expiry = expiry,
+                FileId = storedFile.Id,
                 IsDownload = isDownload
             };
             var name = Guid.NewGuid().ToString();
@@ -70,10 +75,10 @@ namespace BTCPayServer.Storage.Services.Providers.FileSystemStorage
             {
                 File.Create(fullPath).Dispose();
             }
-            
+
             await File.WriteAllTextAsync(Path.Combine(GetTempStorageDir(_options), name), JsonConvert.SerializeObject(localFileDescriptor));
-            
-            return  new Uri(baseUri,$"{LocalStorageDirectoryName}tmp/{name}{(isDownload ? "?download" : string.Empty)}").AbsoluteUri;
+
+            return new Uri(baseUri, $"{LocalStorageDirectoryName}tmp/{name}{(isDownload ? "?download" : string.Empty)}").AbsoluteUri;
         }
     }
 }

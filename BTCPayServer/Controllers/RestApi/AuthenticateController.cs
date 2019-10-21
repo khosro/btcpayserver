@@ -13,13 +13,13 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OpenIddict.Abstractions;
 using OpenIddict.Validation;
-
+using AspNetCore;
+using System.Linq;
 namespace BTCPayServer.Controllers.RestApi
 {
-    [Route("api/v1/[controller]")]
-    [ApiController]
+    [Route(ControllersUtil.ApiBersion1BaseUrl)]
     [EnableCors(CorsPolicies.All)]
-    public class AuthenticateController : ControllerBase
+    public class AuthenticateController : ApiControllerBase
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly StoreRepository _storeRepository;
@@ -39,7 +39,7 @@ namespace BTCPayServer.Controllers.RestApi
             {
                 string email = data["email"]?.ToObject<string>();
                 string password = data["password"]?.ToObject<string>();
-                var account = ControllersUtil.GetController<AccountController>(this.HttpContext, _serviceProvider);
+                var account = this.HttpContext.GetControllerUtil<AccountController>(_serviceProvider);
                 var RegisterDetails = new RegisterViewModel()
                 {
                     Email = email,
@@ -47,16 +47,16 @@ namespace BTCPayServer.Controllers.RestApi
                     Password = password,
                 };
                 var model = await account.Register(RegisterDetails);
-                string errors = string.Join(",", account.GetModelSateError()).Trim();
-                bool hasError = !string.IsNullOrWhiteSpace(errors);
+                var errors = account.GetModelSateErrorList();
+                bool hasError = errors.Any();
                 if (string.IsNullOrWhiteSpace(account.RegisteredUserId) && !hasError)
                 {
-                    response.ErrorMessage = "You can not sign in";/*Maybe policies.LockSubscription = true*/
+                    response.ErrorMessages = new List<string> { "You can not sign in" };/*Maybe policies.LockSubscription = true*/
                     return response.ToHttpResponse();
                 }
                 else
                 {
-                    response.ErrorMessage = errors;
+                    response.ErrorMessages = errors;
                     response.Model = email;
                     return response.ToHttpResponse();
                 }
@@ -64,7 +64,7 @@ namespace BTCPayServer.Controllers.RestApi
             catch (Exception ex)
             {
                 //TODO.Log Error 
-                response.ServerErrorMessage = "Error";
+                response.ServerErrorMessages = new List<string>() { "Error" };
                 return response.ToHttpResponse();
             }
         }
@@ -126,9 +126,9 @@ namespace BTCPayServer.Controllers.RestApi
             var openIdResponse = await httpClient.SendAsync(httpRequest);
             string content = await openIdResponse.Content.ReadAsStringAsync();
             TokenResponseModel tokenResponseModel = JsonConvert.DeserializeObject<TokenResponseModel>(content);
-            response.ErrorMessage = tokenResponseModel.error_description;
+            response.ErrorMessages = new List<string>() { tokenResponseModel.error_description };
             response.Model = tokenResponseModel;
-            return response.ToHttpCreatedResponse();
+            return response.ToHttpResponse();
         }
     }
 }

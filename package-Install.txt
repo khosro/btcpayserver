@@ -1,0 +1,5 @@
+
+
+Install-Package Microsoft.EntityFrameworkCore  -Version 2.1.11.0
+Install-Package System.Data.SqlClient  -Version 4.4.0
+Install-Package Npgsql.EntityFrameworkCore.PostgreSQL -Version 2.1.2
