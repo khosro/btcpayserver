@@ -5,12 +5,18 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace AspNetCore
 {
-    public class ValidateModelStateAttribute : ActionFilterAttribute
+    public class ValidateModelStateAndResponseAttribute : ActionFilterAttribute
     {
         public override void OnActionExecuting(ActionExecutingContext context)
         {
-            ActionFilterUtil.ValidationError(context);
+            ActionFilterUtil.ApiValidationError(context);
             base.OnActionExecuting(context);
+        }
+
+        public override void OnResultExecuting(ResultExecutingContext context)
+        {
+            ActionFilterUtil.RednerApiResponse(context);
+            base.OnResultExecuting(context);
         }
     }
 }

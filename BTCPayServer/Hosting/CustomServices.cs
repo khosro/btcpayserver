@@ -25,10 +25,5 @@ namespace BTCPayServer.Hosting
                 options.SuppressModelStateInvalidFilter = true;
             });
         }
-
-        public static void ConfigureCustomApp(this IApplicationBuilder app)
-        {
-            //app.UseMiddleware<ExceptionMiddleware>();//Refer to Comment#1 in ExceptionMiddleware.cs
-        }
     }
 }

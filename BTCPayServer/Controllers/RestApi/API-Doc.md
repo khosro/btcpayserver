@@ -6,7 +6,7 @@ Not following  77.77.77.77:8081 -> 192.168.1.2:8080(For exmaple something like w
 
 ---
 
-### A.All the return type for all api has the following format :
+### A. All the return type for all api has the following format :
 ```
     {
     errorMessages: []
@@ -21,13 +21,16 @@ Not following  77.77.77.77:8081 -> 192.168.1.2:8080(For exmaple something like w
 ###### A.1. If request is OK, status code ```200``` returned
 ```errorMessages``` and ```serverErrorMessages``` has empty array and ```hasError = false```
 
-###### A.2.If request data has some validation error, status code ```412``` returned
+###### A.2. If request data has some validation error, status code ```412``` returned
  ```errorMessages``` is filled with array of error and ```hasError = true```
 
-###### A.3.If the there is unhandled exception occured, status code ```500``` returned
+###### A.3. If the there is unhandled exception occured, status code ```500``` returned
  ```serverErrorMessages``` is filled with array of server error and ```hasError = true```
 
-### B.All Api url has the following prefix ``` https://{baseurl}/api/v1 ```
+###### A.4. If the api call is authorized protected and caller does not pass the correct token it get ```401```
+It is important that the response return type does not obey the default return type such as section A
+
+### B. All Api url has the following prefix ``` https://{baseurl}/api/v1 ```
 
 ---
 

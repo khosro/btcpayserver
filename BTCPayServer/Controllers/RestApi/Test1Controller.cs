@@ -13,6 +13,7 @@ using OpenIddict.Validation;
 using System.Linq;
 using Microsoft.Extensions.Primitives;
 using AspNetCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace BTCPayServer.Controllers.RestApi
 {
@@ -71,6 +72,7 @@ namespace BTCPayServer.Controllers.RestApi
         {
             Files = new List<IFormFile>();
         }
+        [Required]
         public string FirstName { get; set; }
         public IEnumerable<IFormFile> Files { get; set; }
     }

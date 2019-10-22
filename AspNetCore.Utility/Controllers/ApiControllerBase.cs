@@ -7,8 +7,7 @@ namespace AspNetCore
 {
     [ExceptionActionFilter]
     [ApiController]
-    [ValidateModelState]
-    [ResponseApiActionFilter]
+    [ValidateModelStateAndResponse]
     public abstract class ApiControllerBase : ControllerBase
     {
         public virtual void AddModelError(string key, string errorMessage)
