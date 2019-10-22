@@ -43,7 +43,8 @@ Send Data(Send as Json -  application/json; charset=utf-8) :
 Returns : 
 ```
 {
-    model: "username"
+    model: "username",
+    ...
 }
 ```
 
@@ -51,6 +52,7 @@ If error occured :
 ```
 {
     "errorMessages":["You can not sign in"],
+    ...
 }
 
 ```
@@ -78,7 +80,8 @@ If success :
 	    "expires_in": 60,
 	    "refresh_token": "value",
 	    "id_token": ""
-    }
+    },
+    ...
 }
 ```
 
@@ -86,6 +89,7 @@ If error occured :
 ```
 {
     "errorMessages":["Passwords must be at least 6 characters."],
+    ...
 }
 ```
 
@@ -112,6 +116,7 @@ If success :
     "refresh_token": "value",
     "id_token": ""
   },
+  ...
 }
 
 ```
@@ -120,6 +125,7 @@ If error occured :
 ```
 {
   "errorMessages": ["The specified refresh token is invalid."],
+  ...
 }
 ```
 ---
