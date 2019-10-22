@@ -13,58 +13,77 @@ namespace EntityFramework
 {
     public static class EntityFrameworkUtility
     {
+        public static class PostgresContant
+        {
+            public static readonly string ErrorCodeValue = "Code";
+            public static readonly string MessageTextValue = "MessageText";
+        }
+
         private static readonly Regex SqlServerUniqueConstraintRegex = new Regex("'UniqueError_([a-zA-Z0-9]*)_([a-zA-Z0-9]*)'", RegexOptions.Compiled);
         private static readonly Regex PostgresExceptionUniqueConstraintRegex = new Regex("IX_([a-zA-Z0-9]*)_([a-zA-Z0-9]*)", RegexOptions.Compiled);
-        private static readonly string ErrorCodeValue = "Code";
-        private static readonly string MessageTextValue = "MessageText";
-
+     
         public static void HandleException(this Exception exception)
         {
             if (exception is DbUpdateConcurrencyException concurrencyEx)
             {
-                // A custom exception of yours for concurrency issues
-                throw new ConcurrencyException("");
+                throw new ConcurrencyException(concurrencyEx.Message, concurrencyEx.InnerException);
             }
             else if (exception is DbUpdateException dbUpdateEx)
             {
                 if (dbUpdateEx.InnerException != null)
                 {
                     if (dbUpdateEx.InnerException.InnerException != null && dbUpdateEx.InnerException.InnerException is SqlException sqlException)
-                    {//TODO.I have not test in depth for Sql Server
+                    {   //TODO.I have not test in depth for Sql Server
                         switch (sqlException.Number)
                         {
                             case 2627:  // Unique constraint error
                                 throw new UniqueConstraintException(dbUpdateEx.Message, dbUpdateEx.InnerException);
-                            case 547:   // Constraint check violation
-                            case 2601:  // Duplicated key row error
-                                        // Constraint violation exception
-                                        // A custom exception of yours for concurrency issues
-                                throw new ConcurrencyException("");
+                            /*
+                             * case 547:   // Constraint check violation
+                              case 2601:  // Duplicated key row error , Constraint violation exception
+                              */
                             default:
-                                // A custom exception of yours for other DB issues
-                                throw new DatabaseAccessException(dbUpdateEx.Message, dbUpdateEx.InnerException);
+                                DefaultDatabaseException(dbUpdateEx);
+                                break;
                         }
                     }
                     else if (dbUpdateEx.InnerException is PostgresException postgresException)
                     {
                         int errorCode = 0;
-                        if (postgresException.Data.Contains(ErrorCodeValue))
+                        if (postgresException.Data.Contains(PostgresContant.ErrorCodeValue))
                         {
-                            int.TryParse(postgresException.Data[ErrorCodeValue].ToString(), out errorCode);
+                            int.TryParse(postgresException.Data[PostgresContant.ErrorCodeValue].ToString(), out errorCode);
                         }
                         switch (errorCode)
                         {
                             case 23505:  // Unique constraint error
                                 throw new UniqueConstraintException(UniqueErrorFormatterPostgres(postgresException).ErrorMessage, dbUpdateEx.InnerException);
+                            default:
+                                DefaultDatabaseException(dbUpdateEx);
+                                break;
                         }
-                        throw new DatabaseAccessException(dbUpdateEx.Message, dbUpdateEx.InnerException);
                     }
                 }
                 else
                 {
-                    throw new Exception("Error");
+                    ThrowException(exception);
                 }
             }
+            else
+            {
+                ThrowException(exception);
+            }
+        }
+
+        static void DefaultDatabaseException(Exception ex)
+        {
+            throw new DatabaseAccessException(ex.Message, ex.InnerException);
+        }
+
+
+        static void ThrowException(Exception ex)
+        {
+            throw ex;
         }
 
         /// <summary>
@@ -75,6 +94,7 @@ namespace EntityFramework
         /// <returns></returns>
         static ValidationResult UniqueErrorFormatterSqlServer(SqlException ex)
         {
+            //TODO.I have not test in depth for Sql Server
             var message = ex.Errors[0].Message;
             return UniqueErrorFormatter(message, SqlServerUniqueConstraintRegex);
         }
@@ -88,9 +108,9 @@ namespace EntityFramework
         static ValidationResult UniqueErrorFormatterPostgres(PostgresException ex)
         {
             string message = "";
-            if (ex.Data.Contains(MessageTextValue))
+            if (ex.Data.Contains(PostgresContant.MessageTextValue))
             {
-                message = ex.Data[MessageTextValue].ToString();
+                message = ex.Data[PostgresContant.MessageTextValue].ToString();
             }
             return UniqueErrorFormatter(message, PostgresExceptionUniqueConstraintRegex);
         }

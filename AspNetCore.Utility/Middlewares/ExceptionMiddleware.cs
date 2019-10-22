@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AspNetCore
 {
+    //Comment#1 TODO.This class not tested instead we use ExceptionActionFilter
     public class ExceptionMiddleware
     {
         private readonly RequestDelegate _next;
@@ -49,7 +50,6 @@ namespace AspNetCore
                 context.Response.StatusCode = (int)ResponseBase.DefaultHttpStatusCodeForServerErrorMessages;
                 response.ServerErrorMessages = new List<string> { "Error" };
             }
-            //     }
 
             return context.Response.WriteAsync(response.ToString());
         }

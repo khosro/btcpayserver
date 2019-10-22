@@ -28,15 +28,13 @@ namespace BTCPayServer.Controllers.RestApi
         }
 
         [HttpGet("testaction")]
-        public IActionResult Testaction()
+        public string Testaction()
         {
-            var response = new SingleResponse<string>();
-            response.Model = "test";
-            return response.ToHttpResponse();
+            return "Test OK";
         }
 
         [HttpPost("upload")]
-        public async Task<IActionResult> UploadFile([
+        public async Task<string> UploadFile([
             ModelBinder(BinderType = typeof(JsonWithFilesFormDataModelBinder))]
             [FromForm] Data data)
         {
@@ -52,7 +50,6 @@ namespace BTCPayServer.Controllers.RestApi
              * StringValues values;
             HttpContext.Request.Form.TryGetValue("data", out values);
             */
-            var response = new SingleResponse<string>();
             string responseText = "";
             if (file != null)
             {
@@ -63,8 +60,8 @@ namespace BTCPayServer.Controllers.RestApi
             {
                 responseText = "There is not any file to upload";
             }
-            response.Model = responseText;
-            return response.ToHttpResponse();
+            responseText += $" FirstName : {data.FirstName}";
+            return responseText;
         }
     }
 

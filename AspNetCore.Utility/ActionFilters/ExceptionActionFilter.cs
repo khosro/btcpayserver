@@ -10,14 +10,6 @@ namespace AspNetCore
 {
     public class ExceptionActionFilter : ExceptionFilterAttribute
     {
-        private readonly IHostingEnvironment _hostingEnvironment;
-
-        public ExceptionActionFilter()
-        {
-        }
-
-        #region Overrides of ExceptionFilterAttribute
-
         public override void OnException(ExceptionContext context)
         {
             var actionDescriptor = (Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor)context.ActionDescriptor;
@@ -27,7 +19,7 @@ namespace AspNetCore
             var controller = typeof(Controller);
             var response = new SingleResponse<string>();
 
-            // Api's implements ApiControllerBase but not Controller
+            // Api's implements ApiControllerBase
             if (controllerType.IsSubclassOf(controllerBase) && !controllerType.IsSubclassOf(controller))
             {
                 try
@@ -40,21 +32,19 @@ namespace AspNetCore
                 }
                 catch (Exception ex)
                 {
+                    //TODO.Log exception
                     response.ServerErrorMessages = new List<string> { "Error" };
                 }
 
                 context.Result = response.ToHttpResponse();
             }
 
-            // Pages implements ControllerBase and Controller
+            // Handle normal controller exception.TODO.impl it.
             if (controllerType.IsSubclassOf(controllerBase) && controllerType.IsSubclassOf(controller))
             {
-                // Handle normal controller exception
             }
 
             base.OnException(context);
         }
-
-        #endregion
     }
 }

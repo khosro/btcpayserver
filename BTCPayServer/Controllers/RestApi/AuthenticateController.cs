@@ -32,49 +32,35 @@ namespace BTCPayServer.Controllers.RestApi
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody]JObject data)
+        public async Task<string> Register([FromBody]JObject data)
         {
-            var response = new SingleResponse<string>();
-            try
+            string email = data["email"]?.ToObject<string>();
+            string password = data["password"]?.ToObject<string>();
+            var account = HttpContext.GetControllerUtil<AccountController>(_serviceProvider);
+            var RegisterDetails = new RegisterViewModel()
             {
-                string email = data["email"]?.ToObject<string>();
-                string password = data["password"]?.ToObject<string>();
-                var account = this.HttpContext.GetControllerUtil<AccountController>(_serviceProvider);
-                var RegisterDetails = new RegisterViewModel()
-                {
-                    Email = email,
-                    ConfirmPassword = password,
-                    Password = password,
-                };
-                var model = await account.Register(RegisterDetails);
-                var errors = account.GetModelSateErrorList();
-                bool hasError = errors.Any();
-                if (string.IsNullOrWhiteSpace(account.RegisteredUserId) && !hasError)
-                {
-                    response.ErrorMessages = new List<string> { "You can not sign in" };/*Maybe policies.LockSubscription = true*/
-                    return response.ToHttpResponse();
-                }
-                else
-                {
-                    response.ErrorMessages = errors;
-                    response.Model = email;
-                    return response.ToHttpResponse();
-                }
-            }
-            catch (Exception ex)
+                Email = email,
+                ConfirmPassword = password,
+                Password = password,
+            };
+            await account.Register(RegisterDetails);
+            var errors = account.GetModelSateErrorList();
+            bool hasError = errors.Any();
+            if (string.IsNullOrWhiteSpace(account.RegisteredUserId) && !hasError)
             {
-                //TODO.Log Error 
-                response.ServerErrorMessages = new List<string>() { "Error" };
-                return response.ToHttpResponse();
+                AddModelError("You can not sign in ");/*Maybe policies.LockSubscription = true*/
             }
+            else
+            {
+                AddModelError(errors);
+            }
+            return email;
         }
 
 
         [HttpPost("connect/token")]
-        public async Task<object> Token([FromForm] TokenRequestModel data)
+        public async Task<TokenResponseModel> Token([FromForm] TokenRequestModel data)
         {
-            var response = new SingleResponse<TokenResponseModel>();
-
             /*
              * TODO.
              * This is bad approach.Solve it.
@@ -126,9 +112,8 @@ namespace BTCPayServer.Controllers.RestApi
             var openIdResponse = await httpClient.SendAsync(httpRequest);
             string content = await openIdResponse.Content.ReadAsStringAsync();
             TokenResponseModel tokenResponseModel = JsonConvert.DeserializeObject<TokenResponseModel>(content);
-            response.ErrorMessages = new List<string>() { tokenResponseModel.error_description };
-            response.Model = tokenResponseModel;
-            return response.ToHttpResponse();
+            AddModelError(tokenResponseModel.error_description);
+            return tokenResponseModel;
         }
     }
 }

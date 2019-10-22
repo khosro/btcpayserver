@@ -6,12 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 namespace AspNetCore
 {
-
-
     #region Interfaces
     public interface IResponse
     {
-        string Message { get; set; }
+        List<string> Messages { get; set; }
 
         bool HasError { get; }
 
@@ -52,14 +50,16 @@ namespace AspNetCore
 
         IList<string> errorMessages;
         IList<string> serverErrorMessages;
+        bool _hasError;
 
         public ResponseBase()
         {
             ErrorMessages = new List<string>();
             ServerErrorMessages = new List<string>();
+            Messages = new List<string>();
         }
-        bool _hasError;
-        public string Message { get; set; }
+
+        public List<string> Messages { get; set; }
 
         public bool HasError
         {
@@ -108,6 +108,8 @@ namespace AspNetCore
     }
     #endregion Abstract classes
 
+    #region Implementation
+
     public class Response : ResponseBase
     { }
 
@@ -121,9 +123,24 @@ namespace AspNetCore
     {
         public override double PageCount => ItemsCount < PageSize ? 1 : (int)(((double)ItemsCount / PageSize) + 1);
     }
+    #endregion Implementation
 
     public static class ResponseExtensions
     {
+        #region Obsolete
+        /* I think it does not need any more.The only difference is "HttpStatusCode.Created"
+         * public static IActionResult ToHttpCreatedResponse<TModel>(this ISingleResponse<TModel> response)
+         {
+             var status = HttpStatusCode.Created;
+
+             return new ObjectResult(response)
+             {
+                 StatusCode = (int)GetHttpStatusCode<TModel>(response, status)
+             };
+         }
+         */
+        #endregion
+
         public static IActionResult ToHttpResponse(this IResponse response)
         {
             return new ObjectResult(response)
@@ -134,16 +151,6 @@ namespace AspNetCore
         public static IActionResult ToHttpResponse<TModel>(this ISingleResponse<TModel> response)
         {
             var status = HttpStatusCode.OK;
-
-            return new ObjectResult(response)
-            {
-                StatusCode = (int)GetHttpStatusCode<TModel>(response, status)
-            };
-        }
-
-        public static IActionResult ToHttpCreatedResponse<TModel>(this ISingleResponse<TModel> response)
-        {
-            var status = HttpStatusCode.Created;
 
             return new ObjectResult(response)
             {

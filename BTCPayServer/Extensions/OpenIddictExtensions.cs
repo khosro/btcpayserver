@@ -15,6 +15,7 @@ using Microsoft.IdentityModel.Tokens;
 using NETCore.Encrypt.Extensions.Internal;
 using OpenIddict.Abstractions;
 using OpenIddict.Core;
+using System.Linq;
 namespace BTCPayServer
 {
     public static class OpenIddictExtensions
@@ -56,29 +57,35 @@ namespace BTCPayServer
             {
                 try
                 {
-                    var id = Guid.NewGuid().ToString();
-                    var descriptor = new OpenIddictApplicationDescriptor()
-                    {
-                        ClientId = id,
-                        DisplayName = id,
-                        Permissions = { OpenIddictConstants.Permissions.GrantTypes.Password, OpenIddictConstants.Permissions.GrantTypes.RefreshToken, OpenIddictConstants.Permissions.GrantTypes.Implicit,
-                OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode,OpenIddictConstants.Permissions.GrantTypes.ClientCredentials}
-                    };
-                    var RegisterDetails = new RegisterViewModel()
-                    {
-                        Email = id + "@idea.com",
-                        ConfirmPassword = "idea@",
-                        Password = "ideaW@1",
-                    };
-                    //await account.Register(RegisterDetails);
-                    //var UserId = account.RegisteredUserId;
-                    var _userManager = _serviceProvide.GetService<UserManager<ApplicationUser>>();
-                    var user = new ApplicationUser { UserName = RegisterDetails.Email, Email = RegisterDetails.Email, RequiresEmailConfirmation = false };
-                    var User = await _userManager.CreateAsync(user, RegisterDetails.Password);
                     var openIddictApplicationManager = _serviceProvide.GetService<OpenIddictApplicationManager<BTCPayOpenIdClient>>();
-                    var client = new BTCPayOpenIdClient { ApplicationUserId = user.Id };
-                    await openIddictApplicationManager.PopulateAsync(client, descriptor);
-                    await openIddictApplicationManager.CreateAsync(client, "secret");
+
+                    if (!(await openIddictApplicationManager.ListAsync()).Any())
+                    {
+
+                        var id = Guid.NewGuid().ToString();
+                        var passs = Guid.NewGuid().ToString();
+                        var descriptor = new OpenIddictApplicationDescriptor()
+                        {
+                            ClientId = id,
+                            DisplayName = id,
+                            Permissions = { OpenIddictConstants.Permissions.GrantTypes.Password, OpenIddictConstants.Permissions.GrantTypes.RefreshToken, OpenIddictConstants.Permissions.GrantTypes.Implicit,
+                OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode,OpenIddictConstants.Permissions.GrantTypes.ClientCredentials}
+                        };
+                        var RegisterDetails = new RegisterViewModel()
+                        {
+                            Email = id + "@idea.com",
+                            ConfirmPassword = passs,
+                            Password = passs
+                        };
+                        //await account.Register(RegisterDetails);
+                        //var UserId = account.RegisteredUserId;
+                        var _userManager = _serviceProvide.GetService<UserManager<ApplicationUser>>();
+                        var user = new ApplicationUser { UserName = RegisterDetails.Email, Email = RegisterDetails.Email, RequiresEmailConfirmation = false };
+                        var User = await _userManager.CreateAsync(user, RegisterDetails.Password);
+                        var client = new BTCPayOpenIdClient { ApplicationUserId = user.Id };
+                        await openIddictApplicationManager.PopulateAsync(client, descriptor);
+                        await openIddictApplicationManager.CreateAsync(client, "secret");
+                    }
                 }
                 catch (Exception ex)
                 {

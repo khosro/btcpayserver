@@ -15,6 +15,7 @@ namespace BTCPayServer.Hosting
         {
             services.AddEthereumLike();
             services.AddFileServer();
+            services.AddStartupTask<OpenIdStartupTask>();
             services.Configure<ApiBehaviorOptions>(options =>
             {
                 /*
@@ -27,7 +28,7 @@ namespace BTCPayServer.Hosting
 
         public static void ConfigureCustomApp(this IApplicationBuilder app)
         {
-            //app.UseMiddleware<ExceptionMiddleware>();//We use ExceptionActionFilter instead
+            //app.UseMiddleware<ExceptionMiddleware>();//Refer to Comment#1 in ExceptionMiddleware.cs
         }
     }
 }

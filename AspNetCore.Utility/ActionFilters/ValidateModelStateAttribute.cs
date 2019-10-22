@@ -9,12 +9,7 @@ namespace AspNetCore
     {
         public override void OnActionExecuting(ActionExecutingContext context)
         {
-            if (!context.ModelState.IsValid)
-            {
-                var response = new SingleResponse<string>();
-                response.ErrorMessages = context.ModelState.GetModelSateErrorList();
-                context.Result = response.ToHttpResponse();
-            }
+            ActionFilterUtil.ValidationError(context);
             base.OnActionExecuting(context);
         }
     }

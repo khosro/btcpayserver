@@ -1,25 +1,37 @@
 
+***This is for deployer person who deploys API in web server and for who config firewall(This instruction must be test).
 NOTICE : The mapped port in firewall must be the same as port in local server.
 For example in firewall when we must mapped as following   77.77.77.77:8080 -> 192.168.1.2:8080
-Not following  77.77.77.77:8081 -> 192.168.1.2:8080(For exmaple something like we do with RDP connection, that we changed port to connect from outside)
+Not following  77.77.77.77:8081 -> 192.168.1.2:8080(For exmaple something like we do with RDP connection, that we changed port to connect from outside)***
 
 ---
 
-1.All the return type for all api has the following format :
+### A.All the return type for all api has the following format :
 ```
     {
-    errorMessage: []
+    errorMessages: []
     hasError: false
-    message: []
-    model: "" //or model:{}
-    serverErrorMessage: []
+    messages: []
+    model: "" //or model:{} or model: null or model:[]
+    serverErrorMessages: []
     }
 ```
-2.All Api url has the following prefix ``` https://{baseurl}/api/v1 ```
+***NOTICE : In the following sections we omit default values when we show API returned values***
+
+###### A.1. If request is OK, status code ```200``` returned
+```errorMessages``` and ```serverErrorMessages``` has empty array and ```hasError = false```
+
+###### A.2.If request data has some validation error, status code ```412``` returned
+ ```errorMessages``` is filled with array of error and ```hasError = true```
+
+###### A.3.If the there is unhandled exception occured, status code ```500``` returned
+ ```serverErrorMessages``` is filled with array of server error and ```hasError = true```
+
+### B.All Api url has the following prefix ``` https://{baseurl}/api/v1 ```
 
 ---
 
-### /authenticate/register
+### 1.Register user ```/authenticate/register```
 
 Send Data(Send as Json -  application/json; charset=utf-8) : 
 ```
@@ -28,27 +40,19 @@ Send Data(Send as Json -  application/json; charset=utf-8) :
 Returns : 
 ```
 {
-    errorMessage: []
-    hasError: false
-    message: null
     model: "username"
-    serverErrorMessage:[]
 }
 ```
 
 If error occured :
 ```
 {
-    "model":null,
-    "message":null,
-    "hasError":true,
-    "errorMessage":["You can not sign in"],
-    "serverErrorMessage":[]
+    "errorMessages":["You can not sign in"],
 }
 
 ```
 ---
-### /authenticate/connect/token
+### 2.Get the token ```/authenticate/connect/token```
 
 Send Data (FormUrlEncodedContent - application/x-www-form-urlencoded )
 ```
@@ -63,34 +67,27 @@ Send Data (FormUrlEncodedContent - application/x-www-form-urlencoded )
 If success : 
 ```
 {
-    errorMessage: []
-    hasError: false
-    message: null
-    model:
-    access_token: ""
-    error: null
-    error_description: null
-    expires_in: 60
-    id_token: ""
-    refresh_token: ""
-    token_type: "Bearer"
-    serverErrorMessage: []
+    model:{
+	    "error": null,
+	    "error_description": null,
+	    "token_type": "Bearer",
+	    "access_token": "value",
+	    "expires_in": 60,
+	    "refresh_token": "value",
+	    "id_token": ""
+    }
 }
 ```
 
 If error occured :
 ```
 {
-    "model":"11",
-    "message":null,
-    "hasError":true,
-    "errorMessage":["Passwords must be at least 6 characters."],
-    "serverErrorMessage":[]
+    "errorMessages":["Passwords must be at least 6 characters."],
 }
 ```
 
 ---
-### /authenticate/connect/token
+### 3.Get refresh token ```/authenticate/connect/token```
 
 Send Data (FormUrlEncodedContent - application/x-www-form-urlencoded) :   
 ````
@@ -107,15 +104,11 @@ If success :
     "error": null,
     "error_description": null,
     "token_type": "Bearer",
-    "access_token": "",
+    "access_token": "value",
     "expires_in": 5,
-    "refresh_token": "",
+    "refresh_token": "value",
     "id_token": ""
   },
-  "message": null,
-  "hasError": false,
-  "errorMessage": [],
-  "serverErrorMessage": []
 }
 
 ```
@@ -123,19 +116,7 @@ If success :
 If error occured :
 ```
 {
-  "model": {
-    "error": "invalid_grant",
-    "error_description": "The specified refresh token is invalid.",
-    "token_type": null,
-    "access_token": null,
-    "expires_in": null,
-    "refresh_token": null,
-    "id_token": null
-  },
-  "message": null,
-  "hasError": true,
-  "errorMessage": ["The specified refresh token is invalid."],
-  "serverErrorMessage": []
+  "errorMessages": ["The specified refresh token is invalid."],
 }
 ```
 ---
