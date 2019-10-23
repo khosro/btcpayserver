@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DotNetCore.Utility\DotNetCore.Utility.csproj" />
     <ProjectReference Include="..\EntityFramework.Utility\EntityFramework.Utility.csproj" />
   </ItemGroup>
 
