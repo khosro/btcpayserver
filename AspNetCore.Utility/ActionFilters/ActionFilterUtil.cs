@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using EntityFramework;
+using DotNetCore;
 namespace AspNetCore
 {
     public class ActionFilterUtil
@@ -82,11 +83,13 @@ namespace AspNetCore
                 catch (Exception ex)
                 {
                     //TODO.Log exception
+                    Console.WriteLine(ex.GetStackStrace());
                     response.ServerErrorMessages = new List<string> { "Error" };
                 }
                 context.Result = response.ToHttpResponse();
             }
         }
+
 
         public static bool IsApiController(Type controllerType)
         {
@@ -130,7 +133,7 @@ namespace AspNetCore
 
         #endregion
 
-        #region ExceptionContext
+        #region FilterContext
 
         static Type GetFilterContextControllerType(FilterContext context)
         {
