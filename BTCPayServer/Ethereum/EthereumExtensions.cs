@@ -1,22 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using BTCPayServer.Configuration;
 using BTCPayServer.Ethereum;
 using BTCPayServer.Ethereum.HostedServices;
 using BTCPayServer.Ethereum.Services.Wallet;
 using BTCPayServer.Ethereum.UiUtil;
 using BTCPayServer.HostedServices;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+
 namespace BTCPayServer
 {
+    public class DummyEthereumOptions
+    {
+    }
     public static class EthereumExtensions
     {
         private const string EthereumClientDbInfo = "for EthereumClient";
 
         public static IServiceCollection AddEthereumLike(this IServiceCollection services)
         {
+            services.AddSingleton(s => s.ConfigureEthereumConfiguration());
+
             services.TryAddSingleton<EthereumExplorerClientProvider>();
             services.TryAddSingleton<EthereumWalletProvider>();
             services.TryAddSingleton<EthereumDashboard>();
@@ -25,6 +34,22 @@ namespace BTCPayServer
             services.AddSingleton<IHostedService, EthereumXplorerListener>();
 
             return services;
+        }
+
+        public static DummyEthereumOptions ConfigureEthereumConfiguration(this IServiceProvider serviceProvider)
+        {
+            BTCPayServerOptions bTCPayServerOptions = serviceProvider.GetService<BTCPayServerOptions>();
+            IConfiguration conf = serviceProvider.GetService<IConfiguration>();
+
+            foreach (var net in bTCPayServerOptions.NetworkProvider.GetAll().OfType<EthereumLikecBtcPayNetwork>())
+            {
+                NBXplorerConnectionSetting setting = new NBXplorerConnectionSetting();
+                setting.CryptoCode = net.CryptoCode;
+                setting.ExplorerUri = conf.GetOrDefault<Uri>($"{net.CryptoCode}.explorer.url", new Uri("http://localhost"));
+                setting.CookieFile = conf.GetOrDefault<string>($"{net.CryptoCode}.explorer.cookiefile", "");
+                bTCPayServerOptions.NBXplorerConnectionSettings.Add(setting);
+            }
+            return new DummyEthereumOptions();
         }
 
         public static EthereumLikecBtcPayNetwork GetEthNetwork(this BTCPayNetworkProvider bTCPayNetworkProvider, string cryptoCode)

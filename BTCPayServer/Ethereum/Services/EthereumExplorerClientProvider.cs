@@ -18,7 +18,7 @@ namespace BTCPayServer.Ethereum
         public BTCPayNetworkProvider NetworkProviders => _NetworkProviders;
 
         private EthereumDashboard _Dashboard;
-        public EthereumExplorerClientProvider(IHttpClientFactory httpClientFactory, BTCPayNetworkProvider networkProviders, BTCPayServerOptions options, EthereumDashboard dashboard)
+        public EthereumExplorerClientProvider(DummyEthereumOptions dummyEthereumOptions, IHttpClientFactory httpClientFactory, BTCPayNetworkProvider networkProviders, BTCPayServerOptions options, EthereumDashboard dashboard)
         {
             _Dashboard = dashboard;
             _NetworkProviders = networkProviders;
@@ -42,12 +42,13 @@ namespace BTCPayServer.Ethereum
                 Logs.Configuration.LogInformation($"{setting.CryptoCode}: Cookie file is {(setting.CookieFile ?? "not set")}");
                 if (setting.ExplorerUri != null)
                 {
-                    _Clients.TryAdd(setting.CryptoCode, CreateExplorerClient(httpClientFactory.CreateClient(nameof(ExplorerClientProvider)), _NetworkProviders.GetNetwork<BTCPayNetwork>(setting.CryptoCode), setting.ExplorerUri, setting.CookieFile));
+                    _Clients.TryAdd(setting.CryptoCode, CreateExplorerClient(httpClientFactory.CreateClient(nameof(ExplorerClientProvider)),
+                        _NetworkProviders.GetNetwork<EthereumLikecBtcPayNetwork>(setting.CryptoCode), setting.ExplorerUri, setting.CookieFile));
                 }
             }
         }
 
-        private static EthereumExplorerClient CreateExplorerClient(HttpClient httpClient, BTCPayNetwork n, Uri uri, string cookieFile)
+        private static EthereumExplorerClient CreateExplorerClient(HttpClient httpClient, EthereumLikecBtcPayNetwork n, Uri uri, string cookieFile)
         {
             var explorer = new EthereumExplorerClient(n.NBXplorerNetwork, uri);
             explorer.SetClient(httpClient);
@@ -67,7 +68,7 @@ namespace BTCPayServer.Ethereum
 
         public EthereumExplorerClient GetExplorerClient(string cryptoCode)
         {
-            BTCPayNetwork network = _NetworkProviders.GetNetwork<BTCPayNetwork>(cryptoCode);
+            EthereumLikecBtcPayNetwork network = _NetworkProviders.GetNetwork<EthereumLikecBtcPayNetwork>(cryptoCode);
             if (network == null)
             {
                 return null;
@@ -97,9 +98,9 @@ namespace BTCPayServer.Ethereum
             return _Clients.ContainsKey(cryptoCode) && _Dashboard.IsFullySynched(cryptoCode, out EthereumDashboard.EthereumSummary unused);
         }
 
-        public BTCPayNetwork GetNetwork(string cryptoCode)
+        public EthereumLikecBtcPayNetwork GetNetwork(string cryptoCode)
         {
-            BTCPayNetwork network = _NetworkProviders.GetNetwork<BTCPayNetwork>(cryptoCode);
+            EthereumLikecBtcPayNetwork network = _NetworkProviders.GetNetwork<EthereumLikecBtcPayNetwork>(cryptoCode);
             if (network == null)
             {
                 return null;

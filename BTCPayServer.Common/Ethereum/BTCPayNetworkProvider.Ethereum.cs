@@ -16,11 +16,11 @@ namespace BTCPayServer
                         ? "https://etherscan.io/tx/{0}"
                         : "https://ropsten.etherscan.io/tx/{0}",
                 CryptoImagePath = "/imlegacy/ethereum.png",
-                /*
-                 * If EthereumLikecBtcPayNetwork inherit from BTCPayNetwork, then we can use them*/
-                NBitcoinNetwork = nbxplorerNetwork.NBitcoinNetwork,
                 NBXplorerNetwork = nbxplorerNetwork,
-                CoinType = new KeyPath("60'")
+                /*
+                 * If EthereumLikecBtcPayNetwork inherit from BTCPayNetwork, then we can use them
+                NBitcoinNetwork = nbxplorerNetwork.NBitcoinNetwork,
+                CoinType = new KeyPath("60'")*/
             });
         }
     }
