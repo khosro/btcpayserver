@@ -56,12 +56,6 @@ namespace BTCPayServer.Ethereum.Services.Wallet
             return await _Client.GetBalanceByMnemonic(mnemonic);
         }
 
-        public async Task<Dictionary<string, decimal>> GetBalances(IEnumerable<string> addresses)
-        {
-            return await _Client.GetBalances(addresses);
-
-        }
-
         public async Task<string> BroadcastAsync(EthWalletSendModel ethWalletSendModel, string mnemonic)
         {
             return await _Client.BroadcastAsync(
