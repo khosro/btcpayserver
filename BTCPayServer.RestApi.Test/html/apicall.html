@@ -211,14 +211,8 @@
                 contentType: 'application/json; charset=utf-8',
                 dataType: 'json',
                 async: false,
-                xhrFields: {
-                    // make sure the response knows we're expecting a binary type in return.
-                    // this is important, without it the excel file is marked corrupted.
-                    responseType: 'arraybuffer'
-                },
                 success: function (msg) {
-                    //success(msg);
-                    saveFile(msg);
+                    success(msg);
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     error(xhr, ajaxOptions, thrownError);
@@ -292,8 +286,7 @@
 </head>
 <body>
     <button onclick="callLogin()">Login</button>
-    <button onclick="supportedCoin()">SupportedCoin</button>
-    <button onclick="downloadTets()">downloadTets</button>
+    <button onclick="downloadTets()">DownloadTets</button>
 
     <br />
     <br />
