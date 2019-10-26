@@ -19,9 +19,9 @@ namespace AspNetCore
                 if (context.Result is Microsoft.AspNetCore.Mvc.ObjectResult objectResult)
                 {
                     result = objectResult.Value;
+                    response.Model = result;
+                    context.Result = response.ToHttpResponse();
                 }
-                response.Model = result;
-                context.Result = response.ToHttpResponse();
             }
         }
 

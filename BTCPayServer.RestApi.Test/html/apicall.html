@@ -10,25 +10,21 @@
 
         jQuery(document).ready(function () {
             setBaseValues();
-            //uploadDataTest();
-            profile();
+            mytestfunc();
         });
+
+        function mytestfunc() {
+            //saveprofile();
+            uploadDataTest();
+        }
 
         function setBaseValues() {
             baseUrl = 'http://localhost:5000/api/v1';
             //baseUrl   = 'https://192.168.41.93/api/v1';
 
             client_id = "c029711e-c6ac-4adb-8084-63520a238eb2";//My computer
-            //client_id= '2224adb0-481f-4bdb-844a-cc8eacbd3199';//My home computer
+            //client_id = '56982099-86d3-4e64-be00-c4a2796148a4';//My home computer
             //client_id= '864e4d8d-c3eb-4ac6-a225-e09862ca94c7';//test server
-        }
-
-        function profile() {
-            var arr = {
-                "FirstName": "Bob", "LastName": "dfdfdsfdsfsd", "NationalCode": "0444964444", "MobileNumber": "09121111111", "Email": "sss@aa.com",
-                "HomePhoneNumber": "02144444444", "BirthDay": "2019-08-2", "Address": "sassasasasasasas sassssssssssssss "
-            };
-            defaultForm("/user/profile", arr);
         }
 
         function uploadDataTest() {
@@ -36,15 +32,22 @@
             defaultForm("/test1/upload", arr);
         }
 
-        function defaultForm(url, dataJson) {
+        function downloadTets() {
+            var arr = { fileid: "86af957c-3b14-4a32-a50d-8111d3cb4163" };
+            var token = callLogin("d5749b25-71c1-4598-ac99-2d5348afc2cd@yahoo.com", "123456", false);
+            downloadFile(arr, "/file/download", token);
+        }
+
+        function defaultForm(url, dataJson, myFunc) {
             $("form#data").submit(function (e) {
                 e.preventDefault();
-                uploadFileWithData(this, url, dataJson, ["image", "image1"]);
+                uploadFileWithData(this, url, dataJson, ["image", "image1"], myFunc);
             });
         }
 
-        function uploadFileWithData(from, url, dataJson, filesElementIds) {
-            var token = callLogin('CSharp@yahoo.com','123456',false);
+        function uploadFileWithData(from, url, dataJson, filesElementIds, myFunc) {
+            //var token = callLogin('CSharp@yahoo.com','123456',false);
+            var token = callLogin();
             console.log('token : ' + token);
             var authorizationHeader = 'Bearer ' + token;
 
@@ -67,6 +70,9 @@
                 data: formData,
                 success: function (msg) {
                     success(msg);
+                    if (myFunc != undefined) {
+                        myFunc(token);
+                    }
                 }, error: function (xhr, ajaxOptions, thrownError) {
                     error(xhr, ajaxOptions, thrownError);
                 },
@@ -83,7 +89,7 @@
             var arr, token;
 
             if (email == '') {
-                email = uuidv4() + '@ddssd33333d';
+                email = uuidv4() + '@yahoo.com';
             }
             if (password == '') {
                 password = '123456';
@@ -92,12 +98,12 @@
                 url = '/authenticate/register';
                 arr = { email: email, password: password };
 
-                json(arr, baseUrl + url);
+                json(arr, url);
             }
             arr = { "grant_type": "password", "username": email, "password": password, "client_id": client_id, "client_secret": client_secret, "scope": "openid offline_access" },
                 url = '/authenticate/connect/token';
 
-            var msg = formurlencoded(arr, baseUrl + url);
+            var msg = formurlencoded(arr, url);
 
             if (msg != undefined)
                 token = msg.model.access_token;
@@ -114,7 +120,7 @@
         function formurlencoded(arr, url) {
             var result;
             $.ajax({
-                url: url,
+                url: baseUrl + url,
                 type: 'POST',
                 data: arr,
                 contentType: "application/x-www-form-urlencoded",
@@ -131,17 +137,88 @@
             return result;
         }
 
-        function json(arr, url) {
-
+        function downloadFile(arr, url, token) {
+            var authorizationHeader = GetAuthorizationHeader(token);
             $.ajax({
-                url: url,
+                cache: false,
+                headers: {
+                    'Authorization': authorizationHeader,
+                },
+                url: baseUrl + url,
+                type: 'POST',
+                data: JSON.stringify(arr),
+                contentType: 'application/json; charset=utf-8',
+                xhrFields: {
+                    // make sure the response knows we're expecting a binary type in return.
+                    // this is important, without it the excel file is marked corrupted.
+                    responseType: 'arraybuffer'
+                }
+            }).done(function (data, status, xmlHeaderRequest) {
+                var downloadLink = document.createElement('a');
+                var blob = new Blob([data],
+                    {
+                        type: xmlHeaderRequest.getResponseHeader('Content-Type')
+                    });
+                var url = window.URL || window.webkitURL;
+                var downloadUrl = url.createObjectURL(blob);
+                var fileName = '';
+
+                // get the file name from the content disposition
+                var disposition = new XMLHttpRequest().getResponseHeader('Content-Disposition');
+                if (disposition && disposition.indexOf('attachment') !== -1) {
+                    var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                    var matches = filenameRegex.exec(disposition);
+                    if (matches != null && matches[1]) {
+                        fileName = matches[1].replace(/['"]/g, '');
+                    }
+                }
+
+                // Blob download logic taken from: https://stackoverflow.com/questions/16086162/handle-file-download-from-ajax-post
+                if (typeof window.navigator.msSaveBlob !== 'undefined') {
+                    // IE workaround for "HTML7007" and "Access Denied" error.
+                    window.navigator.msSaveBlob(blob, fileName);
+                } else {
+                    if (fileName) {
+                        if (typeof downloadLink.download === 'undefined') {
+                            window.location = downloadUrl;
+                        } else {
+                            downloadLink.href = downloadUrl;
+                            downloadLink.download = fileName;
+                            document.body.appendChild(downloadLink);
+                            downloadLink.click();
+                        }
+                    } else {
+                        window.location = downloadUrl;
+                    }
+
+                    setTimeout(function () {
+                        url.revokeObjectURL(downloadUrl);
+                    },
+                        100);
+                }
+            });
+        }
+
+        function json(arr, url, token) {
+            var authorizationHeader = GetAuthorizationHeader(token);
+            $.ajax({
+                headers: {
+                    'Authorization': authorizationHeader,
+                },
+                url: baseUrl + url,
                 type: 'POST',
                 data: JSON.stringify(arr),
                 contentType: 'application/json; charset=utf-8',
                 dataType: 'json',
                 async: false,
+                xhrFields: {
+                    // make sure the response knows we're expecting a binary type in return.
+                    // this is important, without it the excel file is marked corrupted.
+                    responseType: 'arraybuffer'
+                },
                 success: function (msg) {
-                    success(msg);
+                    //success(msg);
+                    saveFile(msg);
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     error(xhr, ajaxOptions, thrownError);
@@ -155,6 +232,58 @@
             console.log(msg);
         }
 
+        function saveFile(data) {
+            var downloadLink = document.createElement('a');
+            var blob = new Blob([data],
+                {
+                    type: xmlHeaderRequest.getResponseHeader('Content-Type')
+                });
+            var url = window.URL || window.webkitURL;
+            var downloadUrl = url.createObjectURL(blob);
+            var fileName = '';
+
+            // get the file name from the content disposition
+            var disposition = xmlHttpRequest.getResponseHeader('Content-Disposition');
+            if (disposition && disposition.indexOf('attachment') !== -1) {
+                var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                var matches = filenameRegex.exec(disposition);
+                if (matches != null && matches[1]) {
+                    fileName = matches[1].replace(/['"]/g, '');
+                }
+            }
+
+            // Blob download logic taken from: https://stackoverflow.com/questions/16086162/handle-file-download-from-ajax-post
+            if (typeof window.navigator.msSaveBlob !== 'undefined') {
+                // IE workaround for "HTML7007" and "Access Denied" error.
+                window.navigator.msSaveBlob(blob, fileName);
+            } else {
+                if (fileName) {
+                    if (typeof downloadLink.download === 'undefined') {
+                        window.location = downloadUrl;
+                    } else {
+                        downloadLink.href = downloadUrl;
+                        downloadLink.download = fileName;
+                        document.body.appendChild(downloadLink);
+                        downloadLink.click();
+                    }
+                } else {
+                    window.location = downloadUrl;
+                }
+
+                setTimeout(function () {
+                    url.revokeObjectURL(downloadUrl);
+                },
+                    100);
+            }
+        }
+
+        function GetAuthorizationHeader(token) {
+            if (token != undefined) {
+                return 'Bearer ' + token;
+            }
+            return "";
+        }
+
         function error(xhr, ajaxOptions, thrownError) {
             alert(xhr.status + separator + thrownError + separator + xhr.responseText);
         }
@@ -162,8 +291,9 @@
     </script>
 </head>
 <body>
-    
-    <button onclick="callLogin()">Click me</button>
+    <button onclick="callLogin()">Login</button>
+    <button onclick="supportedCoin()">SupportedCoin</button>
+    <button onclick="downloadTets()">downloadTets</button>
 
     <br />
     <br />
@@ -173,8 +303,7 @@
         <input type="text" name="FirstName" value="Salam" />
         <input id="image" name="image" type="file" />
         <input id="image1" name="image1" type="file" />
-        <button>Submit</button>
+        <button>Send</button>
     </form>
-
 </body>
 </html>

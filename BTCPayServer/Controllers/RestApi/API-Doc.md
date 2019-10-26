@@ -129,5 +129,16 @@ If error occured :
 }
 ```
 ---
+### 4.Download file ``` /file/download ```
+
+Send Data(Send as Json -  application/json; charset=utf-8) : 
+```
+{fileid = ''}
+```
+If success : 
+```
+Stream of file
+```
+---
 
 

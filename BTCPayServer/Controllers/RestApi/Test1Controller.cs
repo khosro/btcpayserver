@@ -14,6 +14,9 @@ using System.Linq;
 using Microsoft.Extensions.Primitives;
 using AspNetCore;
 using System.ComponentModel.DataAnnotations;
+using BTCPayServer.Storage.Services;
+using Microsoft.AspNetCore.Identity;
+using Newtonsoft.Json.Linq;
 
 namespace BTCPayServer.Controllers.RestApi
 {
@@ -22,10 +25,16 @@ namespace BTCPayServer.Controllers.RestApi
     [Authorize(AuthenticationSchemes = OpenIddictValidationDefaults.AuthenticationScheme)]
     public class Test1Controller : ApiControllerBase
     {
-        ImageUploader _imageUploader;
-        public Test1Controller(ImageUploader imageUploader)
+        private readonly IServiceProvider _serviceProvider;
+        private readonly ImageUploader _imageUploader;
+        private readonly FileService _FileService;
+        private readonly UserManager<ApplicationUser> _userManager;
+        public Test1Controller(ImageUploader imageUploader, FileService fileService, UserManager<ApplicationUser> userManager, IServiceProvider serviceProvider)
         {
             _imageUploader = imageUploader;
+            _FileService = fileService;
+            _userManager = userManager;
+            _serviceProvider = serviceProvider;
         }
 
         [HttpGet("testaction")]
@@ -35,8 +44,8 @@ namespace BTCPayServer.Controllers.RestApi
         }
 
         [HttpPost("upload")]
-        public async Task<string> UploadFile([
-            ModelBinder(BinderType = typeof(JsonWithFilesFormDataModelBinder))]
+        public async Task<string> UploadFile(
+            [ModelBinder(BinderType = typeof(JsonWithFilesFormDataModelBinder))]
             [FromForm] Data data)
         {
             string fileNames = string.Join(",", data.Files.Select(t => t.FileName));
@@ -54,8 +63,10 @@ namespace BTCPayServer.Controllers.RestApi
             string responseText = "";
             if (file != null)
             {
-                await _imageUploader.Upload(new AspNetCore.FileManager.Models.FileUploadModel() { File = file, Path = "test" });
-                responseText = $"Number of sent files are {data.Files.Count()} and file names are {fileNames} and only file {file.FileName} uploaded";
+                //await _imageUploader.Upload(new AspNetCore.FileManager.Models.FileUploadModel() { File = file, Path = "test" });
+                var storedFile = await _FileService.AddFile(file, _userManager.GetUserId(User));
+                var imageAddress = await _FileService.GetFileUrl(Request.GetAbsoluteRootUri(), storedFile.Id, User);
+                responseText = $"Number of sent files are {data.Files.Count()} and file names are {fileNames} and only file {file.FileName} uploaded, url {imageAddress}";
             }
             else
             {
@@ -65,7 +76,6 @@ namespace BTCPayServer.Controllers.RestApi
             return responseText;
         }
     }
-
     public class Data
     {
         public Data()
