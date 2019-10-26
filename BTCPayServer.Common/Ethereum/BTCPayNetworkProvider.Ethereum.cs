@@ -15,7 +15,7 @@ namespace BTCPayServer
                     NetworkType == NetworkType.Mainnet
                         ? "https://etherscan.io/tx/{0}"
                         : "https://ropsten.etherscan.io/tx/{0}",
-                CryptoImagePath = "/imlegacy/ethereum.png",
+                CryptoImagePath = "/imlegacy/ethereum.svg",
                 NBXplorerNetwork = nbxplorerNetwork,
                 /*
                  * If EthereumLikecBtcPayNetwork inherit from BTCPayNetwork, then we can use them

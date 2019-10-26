@@ -18,13 +18,13 @@ namespace BTCPayServer.Ethereum
         public BTCPayNetworkProvider NetworkProviders => _NetworkProviders;
 
         private EthereumDashboard _Dashboard;
-        public EthereumExplorerClientProvider(DummyEthereumOptions dummyEthereumOptions, IHttpClientFactory httpClientFactory, BTCPayNetworkProvider networkProviders, BTCPayServerOptions options, EthereumDashboard dashboard)
+        public EthereumExplorerClientProvider(EthereumOptions ethereumOptions, IHttpClientFactory httpClientFactory, BTCPayNetworkProvider networkProviders, BTCPayServerOptions options, EthereumDashboard dashboard)
         {
             _Dashboard = dashboard;
             _NetworkProviders = networkProviders;
             _Options = options;
             IEnumerable<EthereumLikecBtcPayNetwork> ethNetworks = networkProviders.GetAll().OfType<EthereumLikecBtcPayNetwork>();
-            foreach (NBXplorerConnectionSetting setting in options.NBXplorerConnectionSettings)
+            foreach (var setting in ethereumOptions.EthereumNBXplorerOptions)
             {
                 EthereumLikecBtcPayNetwork ethNetwork = ethNetworks.SingleOrDefault(t => t.CryptoCode.Equals(setting.CryptoCode, StringComparison.InvariantCulture));
                 if (ethNetwork == null)

@@ -57,7 +57,7 @@
     },
     "newProfile2-sherkat": {
       "commandName": "Project",
-      "commandLineArgs": "--conf=\"D:\\1.New Project\\BitCoin\\z.Sample_Trading Engine\\btcpayserver\\btcpay\\btcpay.config\"  --network=regtest  --chains \"btc,eth\" --btcexplorerurl http://127.0.0.1:24444 --btcexplorercookiefile \"D:\\1.New Project\\BitCoin\\z.Sample_Trading Engine\\btcpayserver\\NBXplorer\\data\\RegTest\\.cookie\" --ethexplorercookiefile \"D:\\1.New Project\\BitCoin\\z.Sample_Trading Engine\\btcpayserver\\NBXplorer\\data\\RegTest\\.cookie\"  --ethexplorerurl http://127.0.0.1:24444",
+      "commandLineArgs": "--conf=\"D:\\1.New Project\\BitCoin\\z.Sample_Trading Engine\\btcpayserver\\btcpay\\btcpay.config\"  --network=regtest  --chains \"btc,eth\" --btcexplorerurl http://127.0.0.1:24444 --btcexplorercookiefile \"D:\\1.New Project\\BitCoin\\z.Sample_Trading Engine\\btcpayserver\\NBXplorer\\data\\RegTest\\.cookie\"",
       "environmentVariables": {
         "BTCPAY_BUNDLEJSCSS": "false",
         "ASPNETCORE_ENVIRONMENT": "Development"
