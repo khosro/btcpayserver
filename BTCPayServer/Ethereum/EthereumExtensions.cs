@@ -15,8 +15,20 @@ using Microsoft.Extensions.Options;
 
 namespace BTCPayServer
 {
-    public class DummyEthereumOptions
+    public class EthereumOptions
     {
+        public EthereumOptions()
+        {
+            EthereumNBXplorerOptions = new List<EthereumNBXplorerOption>();
+        }
+        public List<EthereumNBXplorerOption> EthereumNBXplorerOptions { get; set; }
+    }
+
+    public class EthereumNBXplorerOption
+    {
+        public string CryptoCode { get; internal set; }
+        public Uri ExplorerUri { get; internal set; }
+        public string CookieFile { get; internal set; }
     }
     public static class EthereumExtensions
     {
@@ -36,37 +48,20 @@ namespace BTCPayServer
             return services;
         }
 
-        public static DummyEthereumOptions ConfigureEthereumConfiguration(this IServiceProvider serviceProvider)
+        public static EthereumOptions ConfigureEthereumConfiguration(this IServiceProvider serviceProvider)
         {
             BTCPayServerOptions bTCPayServerOptions = serviceProvider.GetService<BTCPayServerOptions>();
             IConfiguration conf = serviceProvider.GetService<IConfiguration>();
-
+            EthereumOptions ethereumOptions = new EthereumOptions();
             foreach (var net in bTCPayServerOptions.NetworkProvider.GetAll().OfType<EthereumLikecBtcPayNetwork>())
             {
-                NBXplorerConnectionSetting setting = new NBXplorerConnectionSetting();
+                EthereumNBXplorerOption setting = new EthereumNBXplorerOption();
                 setting.CryptoCode = net.CryptoCode;
                 setting.ExplorerUri = conf.GetOrDefault<Uri>($"{net.CryptoCode}.explorer.url", new Uri("http://localhost"));
                 setting.CookieFile = conf.GetOrDefault<string>($"{net.CryptoCode}.explorer.cookiefile", "");
-                bTCPayServerOptions.NBXplorerConnectionSettings.Add(setting);
+                ethereumOptions.EthereumNBXplorerOptions.Add(setting);
             }
-            return new DummyEthereumOptions();
-        }
-
-        public static EthereumLikecBtcPayNetwork GetEthNetwork(this BTCPayNetworkProvider bTCPayNetworkProvider, string cryptoCode)
-        {
-            IEnumerable<EthereumLikecBtcPayNetwork> ethNetworks = bTCPayNetworkProvider.GetEthNetworks();
-            return ethNetworks.SingleOrDefault(t => t.CryptoCode.Equals(cryptoCode, StringComparison.InvariantCulture));
-        }
-
-        public static IEnumerable<EthereumLikecBtcPayNetwork> GetEthNetworks(this BTCPayNetworkProvider bTCPayNetworkProvider)
-        {
-            IEnumerable<EthereumLikecBtcPayNetwork> ethNetworks = bTCPayNetworkProvider.GetAll().OfType<EthereumLikecBtcPayNetwork>();
-            return ethNetworks;
-        }
-
-        public static IEnumerable<string> GetEthCryptoCodes(this BTCPayNetworkProvider bTCPayNetworkProvider)
-        {
-            return bTCPayNetworkProvider.GetEthNetworks().Select(t => t.CryptoCode);
+            return ethereumOptions;
         }
     }
 }
