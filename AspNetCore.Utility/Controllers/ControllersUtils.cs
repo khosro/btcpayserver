@@ -86,6 +86,15 @@ namespace AspNetCore
             return string.Join(",", errors);
         }
 
+
+        public static void ThrowExcetionIfModelStatIsIvalid(this ControllerBase controllerBase)
+        {
+            if (!controllerBase.ModelState.IsValid)
+            {
+                throw new ModelStateValidationException(controllerBase.GetModelSateErrorList());
+            }
+        }
+
         #endregion
 
         #region Urls

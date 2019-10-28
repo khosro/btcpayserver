@@ -80,6 +80,10 @@ namespace AspNetCore
                 {
                     response.ErrorMessages = new List<string> { ex.Message };
                 }
+                catch (ModelStateValidationException ex)
+                {
+                    response.ErrorMessages = ex.Messages;
+                }
                 catch (Exception ex)
                 {
                     //TODO.Log exception
